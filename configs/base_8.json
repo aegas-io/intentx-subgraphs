@@ -10,7 +10,7 @@
       "symmioMultiAccountName": "MultiAccount1"
     }
   ],
-  "analyticsDeployUrl": "symmiograph/symmioanalytics_base_8",
-  "mainDeployUrl": "symmiograph/symmiomain_base_8",
-  "partiesDeployUrl": "symmiograph/symmioparties_base_8"
+  "analyticsDeployUrl": "intent-x/perpetuals-analytics_base",
+  "mainDeployUrl": "intent-x/perpetuals-main_base",
+  "partiesDeployUrl": "intent-x/perpetuals-parties_base"
 }

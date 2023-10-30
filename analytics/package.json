@@ -1,5 +1,5 @@
 {
-  "name": "symmio_analytics_subgarph",
+  "name": "intentx-analytics-subgraph",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
@@ -15,8 +15,8 @@
     "deploy:fantom": "graph deploy --product hosted-service navid-fkh/symmetrical_fantom",
     "prepare:fantom_test": "mustache ./config/fantom_test.json template.yaml > subgraph.yaml; mustache ./config/fantom_test.json src/contract_utils.template.ts > src/contract_utils.ts;graph build",
     "deploy:fantom_test": "graph deploy --product hosted-service navid-fkh/symmetrical_fantom_test",
-    "prepare:base": "mustache ./config/base.json template.yaml > subgraph.yaml; mustache ./config/base.json src/contract_utils.template.ts > src/contract_utils.ts;graph build",
-    "deploy:base": "graph deploy --product hosted-service navid-fkh/symmetrical_base",
+    "prepare:base": "mustache ../configs/base_8.json template.yaml > subgraph.yaml; mustache ../configs/base_8.json src/contract_utils.template.ts > src/contract_utils.ts;graph build",
+    "deploy:base": "graph deploy --product hosted-service intent-x/perpetuals-analytics_base",
     "prepare:fantom_batchLiq": "mustache ./config/fantom_batchLiq.json template.yaml > subgraph.yaml; mustache ./config/fantom_batchLiq.json src/contract_utils.template.ts > src/contract_utils.ts;graph build",
     "deploy:fantom_batchLiq": "graph deploy --product hosted-service navid-fkh/symmetrical_ftm_batchliq"
   },

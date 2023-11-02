@@ -91,6 +91,40 @@ type DailyHistory @entity {
     timestamp: BigInt!
 }
 
+type UserDailyHistory @entity {
+    id: ID!
+    quotesCount: BigInt!
+    tradeVolume: BigInt!
+    openTradeVolume: BigInt!
+    closeTradeVolume: BigInt!
+    deposit: BigInt!
+    withdraw: BigInt!
+    allocate: BigInt!
+    deallocate: BigInt!
+    accounts: BigInt!
+    generatedFee: BigInt!
+    accountSource: Bytes
+    updateTimestamp: BigInt!
+    timestamp: BigInt!
+}
+
+type UserTotalHistory @entity {
+    id: ID!
+    quotesCount: BigInt!
+    tradeVolume: BigInt!
+    openTradeVolume: BigInt!
+    closeTradeVolume: BigInt!
+    deposit: BigInt!
+    withdraw: BigInt!
+    allocate: BigInt!
+    deallocate: BigInt!
+    accounts: BigInt!
+    generatedFee: BigInt!
+    accountSource: Bytes
+    updateTimestamp: BigInt!
+    timestamp: BigInt!
+}
+
 type TotalHistory @entity {
     id: ID!
     quotesCount: BigInt!

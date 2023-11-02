@@ -8,6 +8,9 @@ import {
   TotalHistory,
   User as UserModel,
   User,
+  UserDailyHistory,
+  UserTotalHistory,
+  
 } from "../generated/schema";
 
 import { ethereum } from "@graphprotocol/graph-ts/chain/ethereum";
@@ -50,6 +53,31 @@ export function getDailyHistoryForTimestamp(timestamp: BigInt, accountSource: By
   return dh;
 }
 
+export function getDailyUserHistoryForTimestamp(timestamp: BigInt, accountSource: Bytes | null, user: Bytes): DailyHistory {
+  const dateStr = getDateFromTimeStamp(timestamp)
+    .getTime()
+    .toString();
+  const id = dateStr + "_" + (accountSource === null ? "null" : accountSource.toHexString()) + "_" + user.toHexString();
+  let dh = UserDailyHistory.load(id);
+  if (dh == null) {
+    dh = new UserDailyHistory(id);
+    dh.updateTimestamp = timestamp;
+    dh.timestamp = timestamp;
+    dh.deposit = BigInt.zero();
+    dh.withdraw = BigInt.zero();
+    dh.quotesCount = BigInt.zero();
+    dh.tradeVolume = BigInt.zero();
+    dh.openTradeVolume = BigInt.zero();
+    dh.closeTradeVolume = BigInt.zero();
+    dh.allocate = BigInt.zero();
+    dh.deallocate = BigInt.zero();
+    dh.accounts = BigInt.zero();
+    dh.accountSource = accountSource;
+    dh.save();
+  }
+  return dh;
+}
+
 export function getTotalHistory(timestamp: BigInt, accountSource: Bytes | null): TotalHistory {
   const id = accountSource === null ? "null" : accountSource.toHexString();
   let th = TotalHistory.load(id);
@@ -68,6 +96,28 @@ export function getTotalHistory(timestamp: BigInt, accountSource: Bytes | null):
     th.users = BigInt.zero();
     th.accounts = BigInt.zero();
     th.platformFee = BigInt.zero();
+    th.accountSource = accountSource;
+    th.save();
+  }
+  return th;
+}
+
+export function getUserTotalHistory(timestamp: BigInt, accountSource: Bytes | null, user: Bytes): TotalHistory {
+  const id = accountSource === null ? "null" : accountSource.toHexString() + "_" + user.toHexString();
+  let th = UserTotalHistory.load(id);
+  if (th == null) {
+    th = new UserTotalHistory(id);
+    th.updateTimestamp = timestamp;
+    th.timestamp = timestamp;
+    th.deposit = BigInt.zero();
+    th.withdraw = BigInt.zero();
+    th.quotesCount = BigInt.zero();
+    th.tradeVolume = BigInt.zero();
+    th.openTradeVolume = BigInt.zero();
+    th.closeTradeVolume = BigInt.zero();
+    th.allocate = BigInt.zero();
+    th.deallocate = BigInt.zero();
+    th.accounts = BigInt.zero();
     th.accountSource = accountSource;
     th.save();
   }

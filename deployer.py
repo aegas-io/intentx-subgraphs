@@ -42,18 +42,18 @@ def deploy_subgraph(subgraph_dir, config_file, deploy_url, prepare_only):
     # Prepare the subgraph
     if subgraph_dir == "analytics":
         subprocess.run(
-            ["npx mustache", adjusted_config_path, "template.yaml"],
+            ["mustache", adjusted_config_path, "template.yaml"],
             check=True,
             stdout=open("subgraph.yaml", "w"),
         )
         subprocess.run(
-            ["npx mustache", adjusted_config_path, "src/contract_utils.template.ts"],
+            ["mustache", adjusted_config_path, "src/contract_utils.template.ts"],
             check=True,
             stdout=open("src/contract_utils.ts", "w"),
         )
     else:
         subprocess.run(
-            ["npx mustache", adjusted_config_path, "template.yaml"],
+            ["mustache", adjusted_config_path, "template.yaml"],
             check=True,
             stdout=open("subgraph.yaml", "w"),
         )

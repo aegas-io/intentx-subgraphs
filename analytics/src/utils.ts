@@ -10,7 +10,6 @@ import {
   User,
   UserDailyHistory,
   UserTotalHistory,
-  
 } from "../generated/schema";
 
 import { ethereum } from "@graphprotocol/graph-ts/chain/ethereum";
@@ -53,7 +52,11 @@ export function getDailyHistoryForTimestamp(timestamp: BigInt, accountSource: By
   return dh;
 }
 
-export function getDailyUserHistoryForTimestamp(timestamp: BigInt, accountSource: Bytes | null, user: Bytes): DailyHistory {
+export function getDailyUserHistoryForTimestamp(
+  timestamp: BigInt,
+  accountSource: Bytes | null,
+  user: Bytes
+): UserDailyHistory {
   const dateStr = getDateFromTimeStamp(timestamp)
     .getTime()
     .toString();
@@ -102,7 +105,7 @@ export function getTotalHistory(timestamp: BigInt, accountSource: Bytes | null):
   return th;
 }
 
-export function getUserTotalHistory(timestamp: BigInt, accountSource: Bytes | null, user: Bytes): TotalHistory {
+export function getUserTotalHistory(timestamp: BigInt, accountSource: Bytes | null, user: Bytes): UserTotalHistory {
   const id = accountSource === null ? "null" : accountSource.toHexString() + "_" + user.toHexString();
   let th = UserTotalHistory.load(id);
   if (th == null) {
@@ -224,6 +227,8 @@ export function createNewUser(
   user.timestamp = block.timestamp;
   user.lastActivityTimestamp = block.timestamp;
   user.transaction = transaction.hash;
+  user.accountSource = accountSource;
+
   user.save();
   const dh = getDailyHistoryForTimestamp(block.timestamp, accountSource);
   dh.newUsers = dh.newUsers.plus(BigInt.fromString("1"));

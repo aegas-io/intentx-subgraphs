@@ -3,6 +3,7 @@ type User @entity {
     timestamp: BigInt!
     lastActivityTimestamp: BigInt!
     transaction: Bytes!
+    accountSource: Bytes
 }
 
 type Account @entity {

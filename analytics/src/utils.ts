@@ -64,6 +64,7 @@ export function getDailyUserHistoryForTimestamp(
   let dh = UserDailyHistory.load(id);
   if (dh == null) {
     dh = new UserDailyHistory(id);
+    dh.user = user.toHexString();
     dh.updateTimestamp = timestamp;
     dh.timestamp = timestamp;
     dh.deposit = BigInt.zero();
@@ -76,6 +77,7 @@ export function getDailyUserHistoryForTimestamp(
     dh.deallocate = BigInt.zero();
     dh.accounts = BigInt.zero();
     dh.accountSource = accountSource;
+    dh.generatedFee = BigInt.zero();
     dh.save();
   }
   return dh;
@@ -110,6 +112,7 @@ export function getUserTotalHistory(timestamp: BigInt, accountSource: Bytes | nu
   let th = UserTotalHistory.load(id);
   if (th == null) {
     th = new UserTotalHistory(id);
+    th.user = user.toHexString();
     th.updateTimestamp = timestamp;
     th.timestamp = timestamp;
     th.deposit = BigInt.zero();
@@ -122,6 +125,7 @@ export function getUserTotalHistory(timestamp: BigInt, accountSource: Bytes | nu
     th.deallocate = BigInt.zero();
     th.accounts = BigInt.zero();
     th.accountSource = accountSource;
+    th.generatedFee = BigInt.zero();
     th.save();
   }
   return th;

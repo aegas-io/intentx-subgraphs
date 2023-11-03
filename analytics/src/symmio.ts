@@ -230,7 +230,12 @@ export function handleDeallocateForPartyB(event: DeallocateForPartyB): void {
 export function handleDepositForPartyB(event: DepositForPartyB): void {
   let account = AccountModel.load(event.params.partyB.toHexString());
   if (account == null) {
-    let user = createNewUser(event.params.partyB.toHexString(), null, event.block, event.transaction);
+    let user = createNewUser(
+      event.params.partyB.toHexString(),
+      null,
+      event.block,
+      event.transaction
+    );
     account = createNewAccount(event.params.partyB.toHexString(), user, null, event.block, event.transaction);
   }
   account.deposit = account.deposit.plus(event.params.amount);

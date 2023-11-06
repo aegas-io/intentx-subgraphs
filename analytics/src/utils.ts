@@ -23,17 +23,11 @@ export function getDateFromTimeStamp(timestamp: BigInt): Date {
   return date;
 }
 
-export function getDailyHistoryForTimestamp(
-  timestamp: BigInt,
-  accountSource: Bytes | null
-): DailyHistory {
+export function getDailyHistoryForTimestamp(timestamp: BigInt, accountSource: Bytes | null): DailyHistory {
   const dateStr = getDateFromTimeStamp(timestamp)
     .getTime()
     .toString();
-  const id =
-    dateStr +
-    "_" +
-    (accountSource === null ? "null" : accountSource.toHexString());
+  const id = dateStr + "_" + (accountSource === null ? "null" : accountSource.toHexString());
   let dh = DailyHistory.load(id);
   if (dh == null) {
     dh = new DailyHistory(id);
@@ -66,12 +60,7 @@ export function getDailyUserHistoryForTimestamp(
   const dateStr = getDateFromTimeStamp(timestamp)
     .getTime()
     .toString();
-  const id =
-    dateStr +
-    "_" +
-    (accountSource === null ? "null" : accountSource.toHexString()) +
-    "_" +
-    user.toHexString();
+  const id = dateStr + "_" + (accountSource === null ? "null" : accountSource.toHexString()) + "_" + user.toHexString();
   let dh = UserDailyHistory.load(id);
   if (dh == null) {
     dh = new UserDailyHistory(id);
@@ -94,10 +83,7 @@ export function getDailyUserHistoryForTimestamp(
   return dh;
 }
 
-export function getTotalHistory(
-  timestamp: BigInt,
-  accountSource: Bytes | null
-): TotalHistory {
+export function getTotalHistory(timestamp: BigInt, accountSource: Bytes | null): TotalHistory {
   const id = accountSource === null ? "null" : accountSource.toHexString();
   let th = TotalHistory.load(id);
   if (th == null) {
@@ -121,15 +107,8 @@ export function getTotalHistory(
   return th;
 }
 
-export function getUserTotalHistory(
-  timestamp: BigInt,
-  accountSource: Bytes | null,
-  user: Bytes
-): UserTotalHistory {
-  const id =
-    accountSource === null
-      ? "null"
-      : accountSource.toHexString() + "_" + user.toHexString();
+export function getUserTotalHistory(timestamp: BigInt, accountSource: Bytes | null, user: Bytes): UserTotalHistory {
+  const id = accountSource === null ? "null" : accountSource.toHexString() + "_" + user.toHexString();
   let th = UserTotalHistory.load(id);
   if (th == null) {
     th = new UserTotalHistory(id);
@@ -157,10 +136,7 @@ export function getSymbolTradeVolume(
   timestamp: BigInt,
   accountSource: Bytes | null
 ): SymbolTradeVolume {
-  const id =
-    symbol.toString() +
-    "_" +
-    (accountSource === null ? "null" : accountSource.toHexString());
+  const id = symbol.toString() + "_" + (accountSource === null ? "null" : accountSource.toHexString());
   let stv = SymbolTradeVolume.load(id);
   if (stv == null) {
     stv = new SymbolTradeVolume(id);
@@ -174,11 +150,8 @@ export function getSymbolTradeVolume(
   return stv;
 }
 
-export function getOpenInterest(
-  timestamp: BigInt,
-  accountSource: Bytes | null
-): OpenInterest {
-  const id = accountSource?.toString() + "_" + "OpenInterestId";
+export function getOpenInterest(timestamp: BigInt, accountSource: Bytes | null): OpenInterest {
+  const id = "OpenInterestId_" + (accountSource === null ? "null" : accountSource.toHexString());
   let oi = OpenInterest.load(id);
   if (oi == null) {
     oi = new OpenInterest(id);
@@ -219,22 +192,14 @@ export function updateDailyOpenInterest(
   let oi = getOpenInterest(blockTimestamp, accountSource);
   let dh = getDailyHistoryForTimestamp(blockTimestamp, accountSource);
 
-  const startOfDay = BigInt.fromString(
-    (getDateFromTimeStamp(blockTimestamp).getTime() / 1000).toString()
-  );
+  const startOfDay = BigInt.fromString((getDateFromTimeStamp(blockTimestamp).getTime() / 1000).toString());
 
   if (isSameDay(blockTimestamp, oi.timestamp)) {
-    oi.accumulatedAmount = oi.accumulatedAmount.plus(
-      diffInSeconds(blockTimestamp, oi.timestamp).times(oi.amount)
-    );
-    dh.openInterest = oi.accumulatedAmount.div(
-      diffInSeconds(blockTimestamp, startOfDay)
-    );
+    oi.accumulatedAmount = oi.accumulatedAmount.plus(diffInSeconds(blockTimestamp, oi.timestamp).times(oi.amount));
+    dh.openInterest = oi.accumulatedAmount.div(diffInSeconds(blockTimestamp, startOfDay));
   } else {
     dh.openInterest = oi.accumulatedAmount.div(BigInt.fromString("86400"));
-    oi.accumulatedAmount = diffInSeconds(blockTimestamp, startOfDay).times(
-      oi.amount
-    );
+    oi.accumulatedAmount = diffInSeconds(blockTimestamp, startOfDay).times(oi.amount);
   }
   oi.amount = increase ? oi.amount.plus(value) : oi.amount.minus(value);
   oi.timestamp = blockTimestamp;
@@ -244,10 +209,7 @@ export function updateDailyOpenInterest(
   dh.save();
 }
 
-export function updateActivityTimestamps(
-  account: Account,
-  blockTimestamp: BigInt
-): void {
+export function updateActivityTimestamps(account: Account, blockTimestamp: BigInt): void {
   account.lastActivityTimestamp = blockTimestamp;
   account.save();
   let user = User.load(account.user)!;

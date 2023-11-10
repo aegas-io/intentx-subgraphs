@@ -84,6 +84,7 @@ import {
   updateDailyOpenInterest,
   getDailyUserHistoryForTimestamp,
   getUserTotalHistory,
+  getSymbolDailyTradeVolume,
 } from "./utils";
 
 export enum QuoteStatus {
@@ -230,7 +231,7 @@ export function handleDeallocateForPartyB(event: DeallocateForPartyB): void {
 export function handleDepositForPartyB(event: DepositForPartyB): void {
   let account = AccountModel.load(event.params.partyB.toHexString());
   if (account == null) {
-    let user = createNewUser(event.params.partyB.toHexString(), null, event.block, event.transaction);
+    let user = createNewUser(event.params.partyB, null, event.block, event.transaction);
     account = createNewAccount(event.params.partyB.toHexString(), user, null, event.block, event.transaction);
   }
   account.deposit = account.deposit.plus(event.params.amount);
@@ -294,7 +295,13 @@ export function handleFillCloseRequest(event: FillCloseRequest): void {
   stv.updateTimestamp = event.block.timestamp;
   stv.save();
 
+  let dsv = getSymbolDailyTradeVolume(quote.symbolId, event.block.timestamp, account.accountSource);
+  dsv.volume = dsv.volume.plus(additionalVolume);
+  dsv.updateTimestamp = event.block.timestamp;
+  dsv.save();
+
   updateDailyOpenInterest(
+    quote.symbolId,
     event.block.timestamp,
     unDecimal(event.params.filledAmount.times(quote.openPrice!)),
     false,
@@ -387,7 +394,12 @@ export function handleOpenPosition(event: OpenPosition): void {
   stv.updateTimestamp = event.block.timestamp;
   stv.save();
 
-  updateDailyOpenInterest(event.block.timestamp, history.volume, true, account.accountSource);
+  let dsv = getSymbolDailyTradeVolume(quote.symbolId, event.block.timestamp, account.accountSource);
+  dsv.volume = dsv.volume.plus(history.volume);
+  dsv.updateTimestamp = event.block.timestamp;
+  dsv.save();
+
+  updateDailyOpenInterest(quote.symbolId, event.block.timestamp, history.volume, true, account.accountSource);
 }
 
 export function handleTransferAllocation(event: TransferAllocation): void {}
@@ -540,7 +552,13 @@ export function handleLiquidatePositionsPartyA(event: LiquidatePositionsPartyA):
     stv.updateTimestamp = event.block.timestamp;
     stv.save();
 
+    let dsv = getSymbolDailyTradeVolume(quote.symbolId, event.block.timestamp, account.accountSource);
+    dsv.volume = dsv.volume.plus(additionalVolume);
+    dsv.updateTimestamp = event.block.timestamp;
+    dsv.save();
+
     updateDailyOpenInterest(
+      quote.symbolId,
       event.block.timestamp,
       unDecimal(liquidAmount.times(quote.openPrice!)),
       false,
@@ -605,7 +623,13 @@ export function handleLiquidatePositionsPartyB(event: LiquidatePositionsPartyB):
     stv.updateTimestamp = event.block.timestamp;
     stv.save();
 
+    let dsv = getSymbolDailyTradeVolume(quote.symbolId, event.block.timestamp, account.accountSource);
+    dsv.volume = dsv.volume.plus(additionalVolume);
+    dsv.updateTimestamp = event.block.timestamp;
+    dsv.save();
+
     updateDailyOpenInterest(
+      quote.symbolId,
       event.block.timestamp,
       unDecimal(liquidAmount.times(quote.openPrice!)),
       false,
@@ -698,7 +722,7 @@ export function handleDeallocatePartyA(event: DeallocatePartyA): void {
 export function handleDeposit(event: Deposit): void {
   let account = AccountModel.load(event.params.user.toHexString());
   if (account == null) {
-    let user = createNewUser(event.params.user.toHexString(), null, event.block, event.transaction);
+    let user = createNewUser(event.params.user, null, event.block, event.transaction);
     account = createNewAccount(event.params.user.toHexString(), user, null, event.block, event.transaction);
   }
   account.deposit = account.deposit.plus(event.params.amount);
@@ -741,7 +765,7 @@ export function handleDeposit(event: Deposit): void {
 export function handleWithdraw(event: Withdraw): void {
   let account = AccountModel.load(event.params.sender.toHexString());
   if (account == null) {
-    let user = createNewUser(event.params.sender.toHexString(), null, event.block, event.transaction);
+    let user = createNewUser(event.params.sender, null, event.block, event.transaction);
     account = createNewAccount(event.params.sender.toHexString(), user, null, event.block, event.transaction);
   }
   account.withdraw = account.withdraw.plus(event.params.amount);

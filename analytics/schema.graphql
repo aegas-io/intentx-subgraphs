@@ -4,6 +4,7 @@ type User @entity {
   lastActivityTimestamp: BigInt!
   transaction: Bytes!
   accountSource: Bytes
+  address: Bytes!
 
   accounts: [Account!]! @derivedFrom(field: "user")
   dailyHistory: [UserDailyHistory!]! @derivedFrom(field: "user")
@@ -156,6 +157,18 @@ type Symbol @entity {
   tradingFee: BigInt!
   timestamp: BigInt!
   updateTimestamp: BigInt!
+  totalTradeVolume: SymbolTradeVolume @derivedFrom(field: "symbol")
+  dailyTradeVolume: [SymbolDailyTradeVolume!] @derivedFrom(field: "symbol")
+  openInterests: [OpenInterest!] @derivedFrom(field: "symbol")
+}
+
+type SymbolDailyTradeVolume @entity {
+  id: ID!
+  symbol: Symbol!
+  timestamp: BigInt!
+  updateTimestamp: BigInt!
+  volume: BigInt!
+  accountSource: Bytes
 }
 
 type SymbolTradeVolume @entity {
@@ -165,6 +178,7 @@ type SymbolTradeVolume @entity {
   updateTimestamp: BigInt!
   volume: BigInt!
   accountSource: Bytes
+  symbol: Symbol!
 }
 
 type OpenInterest @entity {
@@ -173,4 +187,5 @@ type OpenInterest @entity {
   accumulatedAmount: BigInt!
   timestamp: BigInt!
   accountSource: Bytes
+  symbol: Symbol
 }

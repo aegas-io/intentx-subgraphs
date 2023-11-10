@@ -10,6 +10,7 @@ import {
   User,
   UserDailyHistory,
   UserTotalHistory,
+  SymbolDailyTradeVolume,
 } from "../generated/schema";
 
 import { ethereum } from "@graphprotocol/graph-ts/chain/ethereum";
@@ -83,6 +84,29 @@ export function getDailyUserHistoryForTimestamp(
   return dh;
 }
 
+export function getSymbolDailyTradeVolume(
+  symbol: BigInt,
+  timestamp: BigInt,
+  accountSource: Bytes | null
+): SymbolDailyTradeVolume {
+  const dateStr = getDateFromTimeStamp(timestamp)
+    .getTime()
+    .toString();
+
+  const id = dateStr + "_" + (accountSource === null ? "null" : accountSource.toHexString()) + "_" + symbol.toString();
+  let sdh = SymbolDailyTradeVolume.load(id);
+  if (sdh == null) {
+    sdh = new SymbolDailyTradeVolume(id);
+    sdh.updateTimestamp = timestamp;
+    sdh.timestamp = timestamp;
+    sdh.accountSource = accountSource;
+    sdh.symbol = symbol.toString();
+    sdh.volume = BigInt.zero();
+    sdh.save();
+  }
+  return sdh;
+}
+
 export function getTotalHistory(timestamp: BigInt, accountSource: Bytes | null): TotalHistory {
   const id = accountSource === null ? "null" : accountSource.toHexString();
   let th = TotalHistory.load(id);
@@ -145,12 +169,13 @@ export function getSymbolTradeVolume(
     stv.accountSource = accountSource;
     stv.volume = BigInt.zero();
     stv.symbolId = symbol;
+    stv.symbol = symbol.toString();
     stv.save();
   }
   return stv;
 }
 
-export function getOpenInterest(timestamp: BigInt, accountSource: Bytes | null): OpenInterest {
+export function getOpenInterest(timestamp: BigInt, accountSource: Bytes | null): OpenInterest {
   const id = "OpenInterestId_" + (accountSource === null ? "null" : accountSource.toHexString());
   let oi = OpenInterest.load(id);
   if (oi == null) {
@@ -159,6 +184,21 @@ export function getOpenInterest(timestamp: BigInt, accountSource: Bytes | null)
     oi.accumulatedAmount = BigInt.zero();
     oi.timestamp = timestamp;
     oi.accountSource = accountSource;
+    oi.save();
+  }
+  return oi;
+}
+
+export function getOpenInterestForSymbol(timestamp: BigInt, accountSource: Bytes | null, symbol: BigInt): OpenInterest {
+  const id = symbol.toString() + "_OpenInterestId_" + (accountSource === null ? "null" : accountSource.toHexString());
+  let oi = OpenInterest.load(id);
+  if (oi == null) {
+    oi = new OpenInterest(id);
+    oi.amount = BigInt.zero();
+    oi.accumulatedAmount = BigInt.zero();
+    oi.timestamp = timestamp;
+    oi.accountSource = accountSource;
+    oi.symbol = symbol.toString();
     oi.save();
   }
   return oi;
@@ -184,6 +224,7 @@ export function diffInSeconds(timestamp1: BigInt, timestamp2: BigInt): BigInt {
 }
 
 export function updateDailyOpenInterest(
+  symbolId: BigInt,
   blockTimestamp: BigInt,
   value: BigInt,
   increase: boolean,
@@ -191,22 +232,31 @@ export function updateDailyOpenInterest(
 ): void {
   let oi = getOpenInterest(blockTimestamp, accountSource);
   let dh = getDailyHistoryForTimestamp(blockTimestamp, accountSource);
+  let oiForSymbol = getOpenInterestForSymbol(blockTimestamp, accountSource, symbolId);
 
   const startOfDay = BigInt.fromString((getDateFromTimeStamp(blockTimestamp).getTime() / 1000).toString());
 
   if (isSameDay(blockTimestamp, oi.timestamp)) {
     oi.accumulatedAmount = oi.accumulatedAmount.plus(diffInSeconds(blockTimestamp, oi.timestamp).times(oi.amount));
     dh.openInterest = oi.accumulatedAmount.div(diffInSeconds(blockTimestamp, startOfDay));
+    oiForSymbol.accumulatedAmount = oiForSymbol.accumulatedAmount.plus(
+      diffInSeconds(blockTimestamp, oiForSymbol.timestamp).times(oiForSymbol.amount)
+    );
   } else {
     dh.openInterest = oi.accumulatedAmount.div(BigInt.fromString("86400"));
     oi.accumulatedAmount = diffInSeconds(blockTimestamp, startOfDay).times(oi.amount);
+    oiForSymbol.accumulatedAmount = diffInSeconds(blockTimestamp, startOfDay).times(oiForSymbol.amount);
   }
   oi.amount = increase ? oi.amount.plus(value) : oi.amount.minus(value);
   oi.timestamp = blockTimestamp;
+  oiForSymbol.amount = increase ? oiForSymbol.amount.plus(value) : oiForSymbol.amount.minus(value);
+  oiForSymbol.timestamp = blockTimestamp;
+
   dh.updateTimestamp = blockTimestamp;
 
   oi.save();
   dh.save();
+  oiForSymbol.save();
 }
 
 export function updateActivityTimestamps(account: Account, blockTimestamp: BigInt): void {
@@ -223,16 +273,17 @@ export function updateActivityTimestamps(account: Account, blockTimestamp: BigIn
 }
 
 export function createNewUser(
-  address: string,
+  address: Bytes,
   accountSource: Bytes | null,
   block: ethereum.Block,
   transaction: ethereum.Transaction
 ): UserModel {
-  let user = new UserModel(address);
+  let user = new UserModel(accountSource === null ? "null" : accountSource.toHexString() + "_" + address.toHexString());
   user.timestamp = block.timestamp;
   user.lastActivityTimestamp = block.timestamp;
   user.transaction = transaction.hash;
   user.accountSource = accountSource;
+  user.address = address;
 
   user.save();
   const dh = getDailyHistoryForTimestamp(block.timestamp, accountSource);

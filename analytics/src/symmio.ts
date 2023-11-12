@@ -231,7 +231,7 @@ export function handleDeallocateForPartyB(event: DeallocateForPartyB): void {
 export function handleDepositForPartyB(event: DepositForPartyB): void {
   let account = AccountModel.load(event.params.partyB.toHexString());
   if (account == null) {
-    let user = createNewUser(event.params.partyB.toHexString(), null, event.block, event.transaction);
+    let user = createNewUser(event.params.partyB, null, event.block, event.transaction);
     account = createNewAccount(event.params.partyB.toHexString(), user, null, event.block, event.transaction);
   }
   account.deposit = account.deposit.plus(event.params.amount);
@@ -722,7 +722,7 @@ export function handleDeallocatePartyA(event: DeallocatePartyA): void {
 export function handleDeposit(event: Deposit): void {
   let account = AccountModel.load(event.params.user.toHexString());
   if (account == null) {
-    let user = createNewUser(event.params.user.toHexString(), null, event.block, event.transaction);
+    let user = createNewUser(event.params.user, null, event.block, event.transaction);
     account = createNewAccount(event.params.user.toHexString(), user, null, event.block, event.transaction);
   }
   account.deposit = account.deposit.plus(event.params.amount);
@@ -765,7 +765,7 @@ export function handleDeposit(event: Deposit): void {
 export function handleWithdraw(event: Withdraw): void {
   let account = AccountModel.load(event.params.sender.toHexString());
   if (account == null) {
-    let user = createNewUser(event.params.sender.toHexString(), null, event.block, event.transaction);
+    let user = createNewUser(event.params.sender, null, event.block, event.transaction);
     account = createNewAccount(event.params.sender.toHexString(), user, null, event.block, event.transaction);
   }
   account.withdraw = account.withdraw.plus(event.params.amount);

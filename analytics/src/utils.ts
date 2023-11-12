@@ -6,7 +6,6 @@ import {
   OpenInterest,
   SymbolTradeVolume,
   TotalHistory,
-  User as UserModel,
   User,
   UserDailyHistory,
   UserTotalHistory,
@@ -277,8 +276,9 @@ export function createNewUser(
   accountSource: Bytes | null,
   block: ethereum.Block,
   transaction: ethereum.Transaction
-): UserModel {
-  let user = new UserModel((accountSource === null ? "null" : accountSource.toHexString()) + "_" + address);
+): User {
+  const id = address + "_" + (accountSource === null ? "null" : accountSource.toHexString());
+  let user = new User(id);
   user.timestamp = block.timestamp;
   user.lastActivityTimestamp = block.timestamp;
   user.transaction = transaction.hash;
@@ -297,7 +297,7 @@ export function createNewUser(
 
 export function createNewAccount(
   address: string,
-  user: UserModel,
+  user: User,
   accountSource: Bytes | null,
   block: ethereum.Block,
   transaction: ethereum.Transaction,

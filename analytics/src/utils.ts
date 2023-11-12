@@ -278,7 +278,9 @@ export function createNewUser(
   block: ethereum.Block,
   transaction: ethereum.Transaction
 ): UserModel {
-  let user = new UserModel(accountSource === null ? "null" : accountSource.toHexString() + "_" + address.toHexString());
+  let user = new UserModel(
+    address.toHexString() + "_" + (accountSource === null ? "null" : accountSource.toHexString())
+  );
   user.timestamp = block.timestamp;
   user.lastActivityTimestamp = block.timestamp;
   user.transaction = transaction.hash;

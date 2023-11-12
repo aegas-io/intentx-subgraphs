@@ -273,17 +273,17 @@ export function updateActivityTimestamps(account: Account, blockTimestamp: BigIn
 }
 
 export function createNewUser(
-  address: Bytes,
+  address: string,
   accountSource: Bytes | null,
   block: ethereum.Block,
   transaction: ethereum.Transaction
 ): UserModel {
-  let user = new UserModel(accountSource === null ? "null" : accountSource.toHexString() + "_" + address.toHexString());
+  let user = new UserModel((accountSource === null ? "null" : accountSource.toHexString()) + "_" + address);
   user.timestamp = block.timestamp;
   user.lastActivityTimestamp = block.timestamp;
   user.transaction = transaction.hash;
   user.accountSource = accountSource;
-  user.address = address;
+  user.address = Bytes.fromHexString(address);
 
   user.save();
   const dh = getDailyHistoryForTimestamp(block.timestamp, accountSource);

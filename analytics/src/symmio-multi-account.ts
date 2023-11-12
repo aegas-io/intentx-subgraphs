@@ -8,7 +8,7 @@ import { createNewAccount, createNewUser } from "./utils";
 export function handleAddAccount(event: AddAccountEvent): void {
   let user = User.load(event.params.user.toHexString());
   if (user == null)
-    user = createNewUser(event.params.user, event.address, event.block, event.transaction);
+    user = createNewUser(event.params.user.toHexString(), event.address, event.block, event.transaction);
   createNewAccount(
     event.params.account.toHexString(),
     user,

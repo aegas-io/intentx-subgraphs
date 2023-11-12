@@ -6,7 +6,7 @@ import {
   OpenInterest,
   SymbolTradeVolume,
   TotalHistory,
-  User,
+  User as UserModel,
   UserDailyHistory,
   UserTotalHistory,
   SymbolDailyTradeVolume,
@@ -261,7 +261,7 @@ export function updateDailyOpenInterest(
 export function updateActivityTimestamps(account: Account, blockTimestamp: BigInt): void {
   account.lastActivityTimestamp = blockTimestamp;
   account.save();
-  let user = User.load(account.user)!;
+  let user = UserModel.load(account.user)!;
   if (!isSameDay(blockTimestamp, user.lastActivityTimestamp)) {
     user.lastActivityTimestamp = blockTimestamp;
     user.save();
@@ -276,9 +276,9 @@ export function createNewUser(
   accountSource: Bytes | null,
   block: ethereum.Block,
   transaction: ethereum.Transaction
-): User {
+): UserModel {
   const id = address + "_" + (accountSource === null ? "null" : accountSource.toHexString());
-  let user = new User(id);
+  let user = new UserModel(id);
   user.timestamp = block.timestamp;
   user.lastActivityTimestamp = block.timestamp;
   user.transaction = transaction.hash;
@@ -297,7 +297,7 @@ export function createNewUser(
 
 export function createNewAccount(
   address: string,
-  user: User,
+  user: UserModel,
   accountSource: Bytes | null,
   block: ethereum.Block,
   transaction: ethereum.Transaction,

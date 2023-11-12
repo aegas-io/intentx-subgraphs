@@ -4,7 +4,7 @@ type User @entity {
   lastActivityTimestamp: BigInt!
   transaction: Bytes!
   accountSource: Bytes
-  address: Bytes!
+  address: Bytes
 
   accounts: [Account!]! @derivedFrom(field: "user")
   dailyHistory: [UserDailyHistory!]! @derivedFrom(field: "user")

@@ -15,7 +15,7 @@ import {
 import { ethereum } from "@graphprotocol/graph-ts/chain/ethereum";
 
 export function getDateFromTimeStamp(timestamp: BigInt): Date {
-  let date = new Date(timestamp.toI64() * 1000);
+  let date = new Date(timestamp.toI64() * 1000) ;
   date.setUTCHours(0);
   date.setUTCMinutes(0);
   date.setUTCSeconds(0);
@@ -55,16 +55,16 @@ export function getDailyHistoryForTimestamp(timestamp: BigInt, accountSource: By
 export function getDailyUserHistoryForTimestamp(
   timestamp: BigInt,
   accountSource: Bytes | null,
-  user: Bytes
+  user: string
 ): UserDailyHistory {
   const dateStr = getDateFromTimeStamp(timestamp)
     .getTime()
     .toString();
-  const id = dateStr + "_" + (accountSource === null ? "null" : accountSource.toHexString()) + "_" + user.toHexString();
+  const id = user + "_" + (accountSource === null ? "null" : accountSource.toHexString()) + "_" + dateStr;
   let dh = UserDailyHistory.load(id);
   if (dh == null) {
     dh = new UserDailyHistory(id);
-    dh.user = user.toHexString();
+    dh.user = user;
     dh.updateTimestamp = timestamp;
     dh.timestamp = timestamp;
     dh.deposit = BigInt.zero();
@@ -130,12 +130,12 @@ export function getTotalHistory(timestamp: BigInt, accountSource: Bytes | null):
   return th;
 }
 
-export function getUserTotalHistory(timestamp: BigInt, accountSource: Bytes | null, user: Bytes): UserTotalHistory {
-  const id = accountSource === null ? "null" : accountSource.toHexString() + "_" + user.toHexString();
+export function getUserTotalHistory(timestamp: BigInt, accountSource: Bytes | null, user: string): UserTotalHistory {
+  const id = user + "_" + (accountSource === null ? "null" : accountSource.toHexString());
   let th = UserTotalHistory.load(id);
   if (th == null) {
     th = new UserTotalHistory(id);
-    th.user = user.toHexString();
+    th.user = user;
     th.updateTimestamp = timestamp;
     th.timestamp = timestamp;
     th.deposit = BigInt.zero();
@@ -277,8 +277,9 @@ export function createNewUser(
   block: ethereum.Block,
   transaction: ethereum.Transaction
 ): UserModel {
-  const id = address.toHexString() + "_" + (accountSource === null ? "null" : accountSource.toHexString());
-  let user = new UserModel(id);
+  let user = new UserModel(
+    address.toHexString() + "_" + (accountSource === null ? "null" : accountSource.toHexString())
+  );
   user.timestamp = block.timestamp;
   user.lastActivityTimestamp = block.timestamp;
   user.transaction = transaction.hash;

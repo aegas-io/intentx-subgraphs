@@ -33,6 +33,7 @@ type BalanceChange @entity {
   type: String!
   account: String!
   amount: BigInt!
+  collateral: Bytes!
   timestamp: BigInt!
   blockNumber: BigInt!
   transaction: Bytes!
@@ -188,4 +189,46 @@ type OpenInterest @entity {
   timestamp: BigInt!
   accountSource: Bytes
   symbol: Symbol
+}
+
+type PriceCheck @entity{
+    id: ID!
+    givenPrice: BigInt!
+    symbol: String!
+    event: String!
+    additionalInfo: String
+    timestamp: BigInt!
+    transaction: Bytes!
+}
+
+type PartyALiquidation @entity{
+    id: ID!
+    partyA: Bytes!
+    liquidator: Bytes!
+    liquidationType: Int!
+    timestamp: BigInt!
+    transaction: Bytes!
+}
+
+type PartyALiquidationDisputed @entity{
+    id: ID!
+    partyA: Bytes!
+    timestamp: BigInt!
+    transaction: Bytes!
+}
+
+type Configuration @entity{
+    id: ID!
+    collateral: Bytes!
+    updateTimestamp: BigInt!
+    updateTransaction: Bytes!
+}
+
+type GrantedRole @entity{
+    id: ID!
+    role: String!
+    user: Bytes!
+    grantTransaction: Bytes
+    revokeTransaction: Bytes
+    updateTimestamp: BigInt!
 }

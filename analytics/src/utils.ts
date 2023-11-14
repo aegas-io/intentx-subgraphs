@@ -10,12 +10,13 @@ import {
   UserDailyHistory,
   UserTotalHistory,
   SymbolDailyTradeVolume,
+  Configuration,
 } from "../generated/schema";
 
 import { ethereum } from "@graphprotocol/graph-ts/chain/ethereum";
 
 export function getDateFromTimeStamp(timestamp: BigInt): Date {
-  let date = new Date(timestamp.toI64() * 1000) ;
+  let date = new Date(timestamp.toI64() * 1000);
   date.setUTCHours(0);
   date.setUTCMinutes(0);
   date.setUTCSeconds(0);
@@ -250,7 +251,6 @@ export function updateDailyOpenInterest(
   oi.timestamp = blockTimestamp;
   oiForSymbol.amount = increase ? oiForSymbol.amount.plus(value) : oiForSymbol.amount.minus(value);
   oiForSymbol.timestamp = blockTimestamp;
-
   dh.updateTimestamp = blockTimestamp;
 
   oi.save();
@@ -326,4 +326,16 @@ export function createNewAccount(
   th.accounts = th.accounts.plus(BigInt.fromString("1"));
   th.save();
   return account;
+}
+
+export function getConfiguration(event: ethereum.Event): Configuration {
+  let configuration = Configuration.load("0");
+  if (configuration == null) {
+    configuration = new Configuration("0");
+    configuration.updateTimestamp = event.block.timestamp;
+    configuration.updateTransaction = event.transaction.hash;
+    configuration.collateral = event.address; // Will be replaced shortly after creation
+    configuration.save();
+  }
+  return configuration;
 }

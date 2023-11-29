@@ -109,8 +109,6 @@ type DailyHistory @entity {
   accountSource: Bytes
   updateTimestamp: BigInt!
   timestamp: BigInt!
-
-  tvl: BigInt!
 }
 
 type UserDailyHistory @entity {

@@ -5,10 +5,23 @@ type User @entity {
   transaction: Bytes!
   accountSource: Bytes
   address: Bytes
+  
+  deposit: BigInt!
+  withdraw: BigInt!
+  allocated: BigInt!
+  deallocated: BigInt!
 
   accounts: [Account!]! @derivedFrom(field: "user")
   dailyHistory: [UserDailyHistory!]! @derivedFrom(field: "user")
   totalHistory: [UserTotalHistory!]! @derivedFrom(field: "user")
+}
+
+type UserActivity @entity {
+    id: ID!
+    user: String!
+    accountSource: Bytes
+    timestamp: BigInt!
+    updateTimestamp: BigInt
 }
 
 type Account @entity {
@@ -96,6 +109,8 @@ type DailyHistory @entity {
   accountSource: Bytes
   updateTimestamp: BigInt!
   timestamp: BigInt!
+
+  tvl: BigInt!
 }
 
 type UserDailyHistory @entity {
@@ -110,6 +125,20 @@ type UserDailyHistory @entity {
   allocate: BigInt!
   deallocate: BigInt!
   accounts: BigInt!
+  generatedFee: BigInt!
+  accountSource: Bytes
+  updateTimestamp: BigInt!
+  timestamp: BigInt!
+}
+
+type UserSymbolDailyHistory @entity {
+  id: ID!
+  user: User!
+  symbol: Symbol!
+  quotesCount: BigInt!
+  tradeVolume: BigInt!
+  openTradeVolume: BigInt!
+  closeTradeVolume: BigInt!
   generatedFee: BigInt!
   accountSource: Bytes
   updateTimestamp: BigInt!

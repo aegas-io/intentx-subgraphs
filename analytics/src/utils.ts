@@ -11,6 +11,8 @@ import {
   UserTotalHistory,
   SymbolDailyTradeVolume,
   Configuration,
+  UserActivity,
+  UserSymbolDailyHistory,
 } from "../generated/schema";
 
 import { ethereum } from "@graphprotocol/graph-ts/chain/ethereum";
@@ -53,7 +55,42 @@ export function getDailyHistoryForTimestamp(timestamp: BigInt, accountSource: By
   return dh;
 }
 
-export function getDailyUserHistoryForTimestamp(
+export function getUserSymbolDailyHistoryForTimestamp(
+  timestamp: BigInt,
+  accountSource: Bytes | null,
+  user: string,
+  symbol: BigInt
+): UserSymbolDailyHistory {
+  const dateStr = getDateFromTimeStamp(timestamp)
+    .getTime()
+    .toString();
+  const id =
+    user +
+    "_" +
+    (accountSource === null ? "null" : accountSource.toHexString()) +
+    "_" +
+    dateStr +
+    "_" +
+    symbol.toString();
+  let dh = UserSymbolDailyHistory.load(id);
+  if (dh == null) {
+    dh = new UserSymbolDailyHistory(id);
+    dh.user = user;
+    dh.updateTimestamp = timestamp;
+    dh.timestamp = timestamp;
+    dh.quotesCount = BigInt.zero();
+    dh.tradeVolume = BigInt.zero();
+    dh.openTradeVolume = BigInt.zero();
+    dh.closeTradeVolume = BigInt.zero();
+    dh.accountSource = accountSource;
+    dh.generatedFee = BigInt.zero();
+    dh.symbol = symbol.toString();
+    dh.save();
+  }
+  return dh;
+}
+
+export function getUserDailyHistoryForTimestamp(
   timestamp: BigInt,
   accountSource: Bytes | null,
   user: string
@@ -205,13 +242,13 @@ export function getOpenInterestForSymbol(timestamp: BigInt, accountSource: Bytes
 }
 
 export function isSameDay(timestamp1: BigInt, timestamp2: BigInt): boolean {
-  const date1 = new Date(timestamp1.toI64() * 1000);
-  const date2 = new Date(timestamp2.toI64() * 1000);
-
   return (
-    date1.getUTCFullYear() === date2.getUTCFullYear() &&
-    date1.getUTCMonth() === date2.getUTCMonth() &&
-    date1.getUTCDate() === date2.getUTCDate()
+    getDateFromTimeStamp(timestamp1)
+      .getTime()
+      .toString() ==
+    getDateFromTimeStamp(timestamp2)
+      .getTime()
+      .toString()
   );
 }
 
@@ -258,17 +295,33 @@ export function updateDailyOpenInterest(
   oiForSymbol.save();
 }
 
-export function updateActivityTimestamps(account: Account, blockTimestamp: BigInt): void {
-  account.lastActivityTimestamp = blockTimestamp;
+export function updateActivityTimestamps(account: Account, timestamp: BigInt): void {
+  account.lastActivityTimestamp = timestamp;
   account.save();
-  let user = UserModel.load(account.user)!;
-  if (!isSameDay(blockTimestamp, user.lastActivityTimestamp)) {
-    user.lastActivityTimestamp = blockTimestamp;
-    user.save();
-    let dh = getDailyHistoryForTimestamp(blockTimestamp, account.accountSource);
+  let ua: UserActivity = getUserActivity(account.user, account.accountSource, timestamp);
+
+  let uaTimestamp = ua.updateTimestamp === null ? BigInt.fromString("0") : ua.updateTimestamp!;
+  if (!isSameDay(timestamp, uaTimestamp)) {
+    let dh = getDailyHistoryForTimestamp(timestamp, account.accountSource);
     dh.activeUsers = dh.activeUsers.plus(BigInt.fromString("1"));
     dh.save();
   }
+
+  ua.updateTimestamp = timestamp;
+  ua.save();
+}
+
+export function getUserActivity(user: string, accountSource: Bytes | null, timestamp: BigInt): UserActivity {
+  const id = user + "_" + (accountSource === null ? "null" : accountSource.toHexString());
+  let ua: UserActivity | null = UserActivity.load(id);
+  if (ua == null) {
+    ua = new UserActivity(id);
+    ua.user = user;
+    ua.accountSource = accountSource;
+    ua.timestamp = timestamp;
+    ua.save();
+  }
+  return ua as UserActivity;
 }
 
 export function createNewUser(
@@ -285,6 +338,10 @@ export function createNewUser(
   user.transaction = transaction.hash;
   user.accountSource = accountSource;
   user.address = address;
+  user.allocated = BigInt.zero();
+  user.deallocated = BigInt.zero();
+  user.deposit = BigInt.zero();
+  user.withdraw = BigInt.zero();
 
   user.save();
   const dh = getDailyHistoryForTimestamp(block.timestamp, accountSource);

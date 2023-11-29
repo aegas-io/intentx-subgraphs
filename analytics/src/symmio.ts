@@ -80,6 +80,7 @@ import {
   Quote as QuoteModel,
   Symbol,
   TradeHistory as TradeHistoryModel,
+  User,
 } from "./../generated/schema";
 
 import { getLiquidatedStateOfPartyA, getQuote } from "./contract_utils";
@@ -92,10 +93,11 @@ import {
   unDecimal,
   updateActivityTimestamps,
   updateDailyOpenInterest,
-  getDailyUserHistoryForTimestamp,
+  getUserDailyHistoryForTimestamp,
   getUserTotalHistory,
   getSymbolDailyTradeVolume,
   getConfiguration,
+  getUserSymbolDailyHistoryForTimestamp,
 } from "./utils";
 
 import { ethereum } from "@graphprotocol/graph-ts/chain/ethereum";
@@ -247,10 +249,20 @@ export function handleSendQuote(event: SendQuote): void {
   dh.updateTimestamp = event.block.timestamp;
   dh.save();
 
-  const udh = getDailyUserHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
+  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
   udh.quotesCount = udh.quotesCount.plus(BigInt.fromString("1"));
   udh.updateTimestamp = event.block.timestamp;
   udh.save();
+
+  const usdh = getUserSymbolDailyHistoryForTimestamp(
+    event.block.timestamp,
+    account.accountSource,
+    account.user,
+    quote.symbolId
+  );
+  usdh.quotesCount = usdh.quotesCount.plus(BigInt.fromString("1"));
+  usdh.updateTimestamp = event.block.timestamp;
+  usdh.save();
 
   const th = getTotalHistory(event.block.timestamp, account.accountSource);
   th.quotesCount = th.quotesCount.plus(BigInt.fromString("1"));
@@ -284,6 +296,15 @@ export function handleAllocateForPartyB(event: AllocateForPartyB): void {
   account.allocated = account.allocated.plus(event.params.amount);
   account.updateTimestamp = event.block.timestamp;
   account.save();
+
+  let user: User | null = User.load(account.user);
+  if (!user) {
+    user = createNewUser(event.params.partyB, account.accountSource, event.block, event.transaction);
+  }
+
+  user.allocated = user.allocated.plus(event.params.amount);
+  user.lastActivityTimestamp = event.block.timestamp;
+  user.save();
 }
 
 export function handleAllocatePartyB(event: AllocatePartyB): void {
@@ -291,6 +312,15 @@ export function handleAllocatePartyB(event: AllocatePartyB): void {
   account.allocated = account.allocated.plus(event.params.amount);
   account.updateTimestamp = event.block.timestamp;
   account.save();
+
+  let user: User | null = User.load(account.user);
+  if (!user) {
+    user = createNewUser(event.params.partyB, account.accountSource, event.block, event.transaction);
+  }
+
+  user.allocated = user.allocated.plus(event.params.amount);
+  user.lastActivityTimestamp = event.block.timestamp;
+  user.save();
 }
 
 export function handleDeallocateForPartyB(event: DeallocateForPartyB): void {
@@ -298,17 +328,38 @@ export function handleDeallocateForPartyB(event: DeallocateForPartyB): void {
   account.deallocated = account.deallocated.plus(event.params.amount);
   account.updateTimestamp = event.block.timestamp;
   account.save();
+
+  let user: User | null = User.load(account.user);
+  if (!user) {
+    user = createNewUser(event.params.partyB, account.accountSource, event.block, event.transaction);
+  }
+
+  user.deallocated = user.deallocated.plus(event.params.amount);
+  user.lastActivityTimestamp = event.block.timestamp;
+  user.save();
 }
 
 export function handleDepositForPartyB(event: DepositForPartyB): void {
   let account = AccountModel.load(event.params.partyB.toHexString());
+  let user: User | null = null;
   if (account == null) {
-    let user = createNewUser(event.params.partyB, null, event.block, event.transaction);
+    user = createNewUser(event.params.partyB, null, event.block, event.transaction);
     account = createNewAccount(event.params.partyB.toHexString(), user, null, event.block, event.transaction);
   }
+
+  if (!user) {
+    user = User.load(account.user);
+  }
+  if (!user) {
+    user = createNewUser(event.params.partyB, account.accountSource, event.block, event.transaction);
+  }
+
   account.deposit = account.deposit.plus(event.params.amount);
   account.updateTimestamp = event.block.timestamp;
   account.save();
+
+  user.deposit = user.deposit.plus(event.params.amount);
+  user.save();
 }
 
 export function handleDeposit(event: Deposit): void {
@@ -335,7 +386,7 @@ export function handleDeposit(event: Deposit): void {
   dh.updateTimestamp = event.block.timestamp;
   dh.save();
 
-  const udh = getDailyUserHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
+  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
   udh.deposit = udh.deposit.plus(deposit.amount);
   udh.updateTimestamp = event.block.timestamp;
   udh.save();
@@ -380,11 +431,22 @@ export function handleFillCloseRequest(event: FillCloseRequest): void {
   dh.updateTimestamp = event.block.timestamp;
   dh.save();
 
-  const udh = getDailyUserHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
+  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
   udh.tradeVolume = udh.tradeVolume.plus(additionalVolume);
   udh.closeTradeVolume = udh.closeTradeVolume.plus(additionalVolume);
   udh.updateTimestamp = event.block.timestamp;
   udh.save();
+
+  const usdh = getUserSymbolDailyHistoryForTimestamp(
+    event.block.timestamp,
+    account.accountSource,
+    account.user,
+    quote.symbolId
+  );
+  usdh.tradeVolume = usdh.tradeVolume.plus(additionalVolume);
+  usdh.closeTradeVolume = usdh.closeTradeVolume.plus(additionalVolume);
+  usdh.updateTimestamp = event.block.timestamp;
+  usdh.save();
 
   const th = getTotalHistory(event.block.timestamp, account.accountSource);
   th.tradeVolume = th.tradeVolume.plus(additionalVolume);
@@ -481,12 +543,24 @@ export function handleOpenPosition(event: OpenPosition): void {
   dh.updateTimestamp = event.block.timestamp;
   dh.save();
 
-  const udh = getDailyUserHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
+  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
   udh.tradeVolume = udh.tradeVolume.plus(history.volume);
   udh.openTradeVolume = udh.openTradeVolume.plus(history.volume);
   udh.generatedFee = udh.generatedFee.plus(tradingFee);
   udh.updateTimestamp = event.block.timestamp;
   udh.save();
+
+  const usdh = getUserSymbolDailyHistoryForTimestamp(
+    event.block.timestamp,
+    account.accountSource,
+    account.user,
+    quote.symbolId
+  );
+  usdh.tradeVolume = usdh.tradeVolume.plus(history.volume);
+  usdh.openTradeVolume = usdh.openTradeVolume.plus(history.volume);
+  usdh.generatedFee = usdh.generatedFee.plus(tradingFee);
+  usdh.updateTimestamp = event.block.timestamp;
+  usdh.save();
 
   const th = getTotalHistory(event.block.timestamp, account.accountSource);
   th.tradeVolume = th.tradeVolume.plus(history.volume);
@@ -643,11 +717,22 @@ function handleLiquidatePosition(_event: ethereum.Event, qId: BigInt): void {
   dh.updateTimestamp = event.block.timestamp;
   dh.save();
 
-  const udh = getDailyUserHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
+  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
   udh.tradeVolume = udh.tradeVolume.plus(additionalVolume);
   udh.closeTradeVolume = udh.closeTradeVolume.plus(additionalVolume);
   udh.updateTimestamp = event.block.timestamp;
   udh.save();
+
+  const usdh = getUserSymbolDailyHistoryForTimestamp(
+    event.block.timestamp,
+    account.accountSource,
+    account.user,
+    quote.symbolId
+  );
+  usdh.tradeVolume = usdh.tradeVolume.plus(additionalVolume);
+  usdh.closeTradeVolume = usdh.closeTradeVolume.plus(additionalVolume);
+  usdh.updateTimestamp = event.block.timestamp;
+  usdh.save();
 
   const th = getTotalHistory(event.block.timestamp, account.accountSource);
   th.tradeVolume = th.tradeVolume.plus(additionalVolume);
@@ -695,7 +780,9 @@ export function handleAllocatePartyA(event: AllocatePartyA): void {
   account.allocated = account.allocated.plus(event.params.amount);
   account.updateTimestamp = event.block.timestamp;
   account.save();
+
   updateActivityTimestamps(account, event.block.timestamp);
+
   let allocate = new BalanceChange(event.transaction.hash.toHex() + "-" + event.logIndex.toHexString());
   allocate.type = "ALLOCATE_PARTY_A";
   allocate.timestamp = event.block.timestamp;
@@ -706,12 +793,19 @@ export function handleAllocatePartyA(event: AllocatePartyA): void {
   allocate.collateral = getConfiguration(event).collateral;
   allocate.save();
 
+  let user = User.load(account.user);
+  if (!user) {
+    user = createNewUser(event.params.user, account.accountSource, event.block, event.transaction);
+  }
+  user.allocated = user.allocated.plus(event.params.amount);
+  user.save();
+
   const dh = getDailyHistoryForTimestamp(event.block.timestamp, account.accountSource);
   dh.allocate = dh.allocate.plus(allocate.amount);
   dh.updateTimestamp = event.block.timestamp;
   dh.save();
 
-  const udh = getDailyUserHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
+  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
   udh.allocate = udh.allocate.plus(allocate.amount);
   udh.updateTimestamp = event.block.timestamp;
   udh.save();
@@ -744,12 +838,19 @@ export function handleDeallocatePartyA(event: DeallocatePartyA): void {
   deallocate.collateral = getConfiguration(event).collateral;
   deallocate.save();
 
+  let user = User.load(account.user);
+  if (!user) {
+    user = createNewUser(event.params.user, account.accountSource, event.block, event.transaction);
+  }
+  user.deallocated = user.deallocated.plus(event.params.amount);
+  user.save();
+
   const dh = getDailyHistoryForTimestamp(event.block.timestamp, account.accountSource);
   dh.deallocate = dh.deallocate.plus(deallocate.amount);
   dh.updateTimestamp = event.block.timestamp;
   dh.save();
 
-  const udh = getDailyUserHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
+  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
   udh.deallocate = udh.deallocate.plus(deallocate.amount);
   udh.updateTimestamp = event.block.timestamp;
   udh.save();
@@ -790,7 +891,7 @@ export function handleWithdraw(event: Withdraw): void {
   dh.updateTimestamp = event.block.timestamp;
   dh.save();
 
-  const udh = getDailyUserHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
+  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
   udh.withdraw = udh.withdraw.plus(withdraw.amount);
   udh.updateTimestamp = event.block.timestamp;
   udh.save();

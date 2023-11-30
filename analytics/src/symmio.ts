@@ -256,6 +256,7 @@ export function handleSendQuote(event: SendQuote): void {
   quote.account = account.id;
   quote.closedAmount = BigInt.fromString("0");
   quote.avgClosedPrice = BigInt.fromString("0");
+  quote.accountSource = account.accountSource;
   quote.save();
 
   const dh = getDailyHistoryForTimestamp(event.block.timestamp, account.accountSource);

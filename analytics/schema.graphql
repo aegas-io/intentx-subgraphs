@@ -67,6 +67,7 @@ type TradeHistory @entity {
 
 type Quote @entity {
   id: ID!
+  accountSource: Bytes
   account: String!
   partyBsWhiteList: [Bytes!]
   symbolId: BigInt!
@@ -90,6 +91,7 @@ type Quote @entity {
   transaction: Bytes!
   partyB: Bytes
   liquidatedSide: Int
+  
 
   user: User!
 }

@@ -225,7 +225,12 @@ export function handleSendQuote(event: SendQuote): void {
   account.quotesCount = account.quotesCount.plus(BigInt.fromString("1"));
   account.save();
   updateActivityTimestamps(account, event.block.timestamp);
+  let user = User.load(account.user);
+  if (!user) {
+    user = createNewUser(event.params.partyA, account.accountSource, event.block, event.transaction);
+  }
   let quote = new QuoteModel(event.params.quoteId.toString());
+  quote.user = user.id;
   quote.timestamp = event.block.timestamp;
   quote.updateTimestamp = event.block.timestamp;
   quote.blockNumber = event.block.number;

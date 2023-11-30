@@ -5,7 +5,7 @@ type User @entity {
   transaction: Bytes!
   accountSource: Bytes
   address: Bytes
-  
+
   deposit: BigInt!
   withdraw: BigInt!
   allocated: BigInt!
@@ -14,14 +14,15 @@ type User @entity {
   accounts: [Account!]! @derivedFrom(field: "user")
   dailyHistory: [UserDailyHistory!]! @derivedFrom(field: "user")
   totalHistory: [UserTotalHistory!]! @derivedFrom(field: "user")
+  quotes: [Quote!]! @derivedFrom(field: "user")
 }
 
 type UserActivity @entity {
-    id: ID!
-    user: String!
-    accountSource: Bytes
-    timestamp: BigInt!
-    updateTimestamp: BigInt
+  id: ID!
+  user: String!
+  accountSource: Bytes
+  timestamp: BigInt!
+  updateTimestamp: BigInt
 }
 
 type Account @entity {
@@ -89,6 +90,8 @@ type Quote @entity {
   transaction: Bytes!
   partyB: Bytes
   liquidatedSide: Int
+
+  user: User!
 }
 
 type DailyHistory @entity {
@@ -227,44 +230,44 @@ type OpenInterest @entity {
   symbol: Symbol
 }
 
-type PriceCheck @entity{
-    id: ID!
-    givenPrice: BigInt!
-    symbol: String!
-    event: String!
-    additionalInfo: String
-    timestamp: BigInt!
-    transaction: Bytes!
+type PriceCheck @entity {
+  id: ID!
+  givenPrice: BigInt!
+  symbol: String!
+  event: String!
+  additionalInfo: String
+  timestamp: BigInt!
+  transaction: Bytes!
 }
 
-type PartyALiquidation @entity{
-    id: ID!
-    partyA: Bytes!
-    liquidator: Bytes!
-    liquidationType: Int!
-    timestamp: BigInt!
-    transaction: Bytes!
+type PartyALiquidation @entity {
+  id: ID!
+  partyA: Bytes!
+  liquidator: Bytes!
+  liquidationType: Int!
+  timestamp: BigInt!
+  transaction: Bytes!
 }
 
-type PartyALiquidationDisputed @entity{
-    id: ID!
-    partyA: Bytes!
-    timestamp: BigInt!
-    transaction: Bytes!
+type PartyALiquidationDisputed @entity {
+  id: ID!
+  partyA: Bytes!
+  timestamp: BigInt!
+  transaction: Bytes!
 }
 
-type Configuration @entity{
-    id: ID!
-    collateral: Bytes!
-    updateTimestamp: BigInt!
-    updateTransaction: Bytes!
+type Configuration @entity {
+  id: ID!
+  collateral: Bytes!
+  updateTimestamp: BigInt!
+  updateTransaction: Bytes!
 }
 
-type GrantedRole @entity{
-    id: ID!
-    role: String!
-    user: Bytes!
-    grantTransaction: Bytes
-    revokeTransaction: Bytes
-    updateTimestamp: BigInt!
+type GrantedRole @entity {
+  id: ID!
+  role: String!
+  user: Bytes!
+  grantTransaction: Bytes
+  revokeTransaction: Bytes
+  updateTimestamp: BigInt!
 }

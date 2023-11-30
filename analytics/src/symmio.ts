@@ -1,5 +1,4 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts";
-import { ByteArray } from "@graphprotocol/graph-ts";
 import {
   AcceptCancelCloseRequest,
   AcceptCancelRequest,
@@ -57,9 +56,9 @@ import {
   SetSuspendedAddress,
   SetSymbolAcceptableValues,
   SetSymbolMaxSlippage,
-  SetSymbolsPrices,
   SetSymbolTradingFee,
   SetSymbolValidationState,
+  SetSymbolsPrices,
   TransferAllocation,
   UnlockQuote,
   UnpauseAccounting,
@@ -79,6 +78,7 @@ import {
   PriceCheck,
   Quote as QuoteModel,
   Symbol,
+  SymbolFeeChange,
   TradeHistory as TradeHistoryModel,
   User,
 } from "./../generated/schema";
@@ -87,17 +87,17 @@ import { getLiquidatedStateOfPartyA, getQuote } from "./contract_utils";
 import {
   createNewAccount,
   createNewUser,
+  getConfiguration,
   getDailyHistoryForTimestamp,
+  getSymbolDailyTradeVolume,
   getSymbolTradeVolume,
   getTotalHistory,
+  getUserDailyHistoryForTimestamp,
+  getUserSymbolDailyHistoryForTimestamp,
+  getUserTotalHistory,
   unDecimal,
   updateActivityTimestamps,
   updateDailyOpenInterest,
-  getUserDailyHistoryForTimestamp,
-  getUserTotalHistory,
-  getSymbolDailyTradeVolume,
-  getConfiguration,
-  getUserSymbolDailyHistoryForTimestamp,
 } from "./utils";
 
 import { ethereum } from "@graphprotocol/graph-ts/chain/ethereum";
@@ -142,6 +142,15 @@ export function handleSetSymbolTradingFee(event: SetSymbolTradingFee): void {
   symbol.tradingFee = event.params.tradingFee;
   symbol.updateTimestamp = event.block.timestamp;
   symbol.save();
+
+  // Storing SymbolFeeChange
+  let symbolFeeChange = new SymbolFeeChange(event.transaction.hash.toHex() + "-" + event.logIndex.toHexString());
+  symbolFeeChange.symbol = symbol.id;
+  symbolFeeChange.timestamp = event.block.timestamp;
+  symbolFeeChange.blockNumber = event.block.number;
+  symbolFeeChange.transaction = event.transaction.hash;
+  symbolFeeChange.tradingFee = event.params.tradingFee;
+  symbolFeeChange.save();
 }
 
 export function handleSetSymbolsPrices(event: SetSymbolsPrices): void {

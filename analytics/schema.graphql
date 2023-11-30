@@ -190,6 +190,15 @@ type Symbol @entity {
   openInterests: [OpenInterest!] @derivedFrom(field: "symbol")
 }
 
+type SymbolFeeChange @entity {
+  id: ID!
+  symbol: Symbol!
+  tradingFee: BigInt!
+  timestamp: BigInt!
+  blockNumber: BigInt!
+  transaction: Bytes!
+}
+
 type SymbolDailyTradeVolume @entity {
   id: ID!
   symbol: Symbol!

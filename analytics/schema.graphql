@@ -94,6 +94,7 @@ type Quote @entity {
   
 
   user: User!
+  symbol: Symbol!
 }
 
 type DailyHistory @entity {
@@ -193,6 +194,7 @@ type Symbol @entity {
   totalTradeVolume: SymbolTradeVolume @derivedFrom(field: "symbol")
   dailyTradeVolume: [SymbolDailyTradeVolume!] @derivedFrom(field: "symbol")
   openInterests: [OpenInterest!] @derivedFrom(field: "symbol")
+  quotes: [Quote!]! @derivedFrom(field: "symbol")
 }
 
 type SymbolFeeChange @entity {

@@ -242,6 +242,9 @@ export function handleSendQuote(event: SendQuote): void {
     quote.partyBsWhiteList = partyBsWhiteList;
   }
   quote.symbolId = event.params.symbolId;
+  let symbol = Symbol.load(event.params.symbolId.toString());
+  
+  quote.symbol = symbol!.id;
   quote.positionType = event.params.positionType;
   quote.orderType = event.params.orderType;
   quote.price = event.params.price;

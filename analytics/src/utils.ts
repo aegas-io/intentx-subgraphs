@@ -49,6 +49,7 @@ export function getDailyHistoryForTimestamp(timestamp: BigInt, accountSource: By
     dh.newAccounts = BigInt.zero();
     dh.platformFee = BigInt.zero();
     dh.openInterest = BigInt.zero();
+    dh.maxOpenInterest = BigInt.zero();
     dh.accountSource = accountSource;
     dh.save();
   }
@@ -289,6 +290,10 @@ export function updateDailyOpenInterest(
   oiForSymbol.amount = increase ? oiForSymbol.amount.plus(value) : oiForSymbol.amount.minus(value);
   oiForSymbol.timestamp = blockTimestamp;
   dh.updateTimestamp = blockTimestamp;
+
+  if (oi.amount > dh.maxOpenInterest) {
+    dh.maxOpenInterest = oi.amount;
+  }
 
   oi.save();
   dh.save();

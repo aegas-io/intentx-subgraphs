@@ -112,6 +112,7 @@ type DailyHistory @entity {
   newAccounts: BigInt!
   platformFee: BigInt!
   openInterest: BigInt!
+  maxOpenInterest: BigInt!
   accountSource: Bytes
   updateTimestamp: BigInt!
   timestamp: BigInt!

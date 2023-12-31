@@ -524,6 +524,7 @@ export function handleSendQuote(event: SendQuote): void {
   quote.account = account.id;
   quote.closedAmount = BigInt.fromString("0");
   quote.avgClosedPrice = BigInt.fromString("0");
+  quote.collateral = getConfiguration(event).collateral;
   quote.accountSource = account.accountSource;
   quote.save();
 

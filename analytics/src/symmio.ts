@@ -11,7 +11,6 @@ import {
   DeallocateForPartyB,
   DeallocatePartyA,
   Deposit,
-  DepositForPartyB,
   DiamondCut,
   DisputeForLiquidation,
   EmergencyClosePosition,
@@ -20,7 +19,6 @@ import {
   ForceCancelCloseRequest,
   ForceCancelQuote,
   ForceClosePosition,
-  FullyLiquidatedPartyA,
   FullyLiquidatedPartyB,
   LiquidatePartyA,
   LiquidatePartyB,
@@ -75,6 +73,7 @@ import {
   GrantedRole,
   PartyALiquidation,
   PartyALiquidationDisputed,
+  PartyBLiquidation,
   PriceCheck,
   Quote as QuoteModel,
   Symbol,
@@ -83,7 +82,7 @@ import {
   User,
 } from "./../generated/schema";
 
-import { getLiquidatedStateOfPartyA, getQuote } from "./contract_utils";
+import { getBalanceInfoOfPartyA, getBalanceInfoOfPartyB, getLiquidatedStateOfPartyA, getQuote } from "./contract_utils";
 import {
   createNewAccount,
   createNewUser,
@@ -153,18 +152,6 @@ export function handleSetSymbolTradingFee(event: SetSymbolTradingFee): void {
   symbolFeeChange.save();
 }
 
-export function handleSetSymbolsPrices(event: SetSymbolsPrices): void {
-  const liquidationDetail = getLiquidatedStateOfPartyA(event.address, event.params.partyA);
-  if (liquidationDetail == null) return;
-  let model = new PartyALiquidation(event.transaction.hash.toHexString() + event.transactionLogIndex.toString());
-  model.partyA = event.params.partyA;
-  model.liquidator = event.params.liquidator;
-  model.liquidationType = liquidationDetail.liquidationType;
-  model.timestamp = event.block.timestamp;
-  model.transaction = event.transaction.hash;
-  model.save();
-}
-
 export function handleRoleGranted(event: RoleGranted): void {
   let gr = new GrantedRole(rolesNames.get(event.params.role.toHexString()) + "_" + event.params.user.toHexString());
   gr.role = rolesNames.get(event.params.role.toHexString()) || event.params.role.toHexString();
@@ -187,88 +174,56 @@ export function handleRoleRevoked(event: RoleRevoked): void {
   gr.save();
 }
 
-export function handleExpireQuote(event: ExpireQuote): void {
+function handleClose(_event: ethereum.Event, name: string): void {
+  const event = changetype<FillCloseRequest>(_event); // FillClose, ForceClose, EmergencyClose all have the same event signature
   let quote = QuoteModel.load(event.params.quoteId.toString())!;
-  quote.quoteStatus = event.params.quoteStatus;
+  quote.avgClosedPrice = quote.avgClosedPrice
+    .times(quote.closedAmount)
+    .plus(event.params.filledAmount.times(event.params.closedPrice))
+    .div(quote.closedAmount.plus(event.params.filledAmount));
+  quote.closedAmount = quote.closedAmount.plus(event.params.filledAmount);
+  if (quote.closedAmount.equals(quote.quantity)) quote.quoteStatus = QuoteStatus.CLOSED;
   quote.updateTimestamp = event.block.timestamp;
   quote.save();
-}
+  let history = TradeHistoryModel.load(event.params.partyA.toHexString() + "-" + event.params.quoteId.toString())!;
+  const additionalVolume = event.params.filledAmount
+    .times(event.params.closedPrice)
+    .div(BigInt.fromString("10").pow(18));
+  history.volume = history.volume.plus(additionalVolume);
+  history.updateTimestamp = event.block.timestamp;
+  history.quoteStatus = quote.quoteStatus;
+  history.quote = event.params.quoteId;
+  history.save();
 
-export function handleForceCancelCloseRequest(event: ForceCancelCloseRequest): void {}
+  let priceCheck = new PriceCheck(event.transaction.hash.toHexString() + event.transactionLogIndex.toString());
+  priceCheck.event = name;
+  priceCheck.symbol = Symbol.load(quote.symbolId.toString())!.name;
+  priceCheck.givenPrice = event.params.closedPrice;
+  priceCheck.timestamp = event.block.timestamp;
+  priceCheck.transaction = event.transaction.hash;
+  priceCheck.additionalInfo = quote.id;
+  priceCheck.save();
 
-export function handleForceCancelQuote(event: ForceCancelQuote): void {}
-
-export function handleForceClosePosition(event: ForceClosePosition): void {}
-
-export function handleRequestToCancelCloseRequest(event: RequestToCancelCloseRequest): void {
   let account = AccountModel.load(event.params.partyA.toHexString())!;
-  updateActivityTimestamps(account, event.block.timestamp);
-}
 
-export function handleRequestToCancelQuote(event: RequestToCancelQuote): void {
-  let account = AccountModel.load(event.params.partyA.toHexString())!;
-  updateActivityTimestamps(account, event.block.timestamp);
-}
+  const symbol = Symbol.load(quote.symbolId.toString());
+  if (symbol == null) return;
 
-export function handleRequestToClosePosition(event: RequestToClosePosition): void {
-  let account = AccountModel.load(event.params.partyA.toHexString())!;
-  updateActivityTimestamps(account, event.block.timestamp);
-
-  let quote = QuoteModel.load(event.params.quoteId.toString())!;
-  quote.quoteStatus = QuoteStatus.CLOSE_PENDING;
-  quote.updateTimestamp = event.block.timestamp;
-  quote.save();
-}
-
-export function handleSendQuote(event: SendQuote): void {
-  let account = AccountModel.load(event.params.partyA.toHexString())!;
-  account.quotesCount = account.quotesCount.plus(BigInt.fromString("1"));
-  account.save();
-  updateActivityTimestamps(account, event.block.timestamp);
-  let user = User.load(account.user);
-  if (!user) {
-    user = createNewUser(event.params.partyA, account.accountSource, event.block, event.transaction);
-  }
-  let quote = new QuoteModel(event.params.quoteId.toString());
-  quote.user = user.id;
-  quote.timestamp = event.block.timestamp;
-  quote.updateTimestamp = event.block.timestamp;
-  quote.blockNumber = event.block.number;
-  quote.transaction = event.transaction.hash;
-  if (event.params.partyBsWhiteList) {
-    let partyBsWhiteList: Bytes[] = [];
-    for (let i = 0, len = event.params.partyBsWhiteList.length; i < len; i++)
-      partyBsWhiteList.push(event.params.partyBsWhiteList[i]);
-    quote.partyBsWhiteList = partyBsWhiteList;
-  }
-  quote.symbolId = event.params.symbolId;
-  let symbol = Symbol.load(event.params.symbolId.toString());
-  
-  quote.symbol = symbol!.id;
-  quote.positionType = event.params.positionType;
-  quote.orderType = event.params.orderType;
-  quote.price = event.params.price;
-  quote.marketPrice = event.params.marketPrice;
-  quote.deadline = event.params.deadline;
-  quote.quantity = event.params.quantity;
-  quote.cva = event.params.cva;
-  quote.mm = event.params.mm;
-  quote.lf = event.params.lf;
-  quote.maxInterestRate = event.params.maxInterestRate;
-  quote.quoteStatus = event.params.quoteStatus;
-  quote.account = account.id;
-  quote.closedAmount = BigInt.fromString("0");
-  quote.avgClosedPrice = BigInt.fromString("0");
-  quote.accountSource = account.accountSource;
-  quote.save();
+  let tradingFee = event.params.filledAmount
+    .times(quote.openPrice!)
+    .times(symbol.tradingFee)
+    .div(BigInt.fromString("10").pow(36));
 
   const dh = getDailyHistoryForTimestamp(event.block.timestamp, account.accountSource);
-  dh.quotesCount = dh.quotesCount.plus(BigInt.fromString("1"));
+  dh.tradeVolume = dh.tradeVolume.plus(additionalVolume);
+  dh.closeTradeVolume = dh.closeTradeVolume.plus(additionalVolume);
   dh.updateTimestamp = event.block.timestamp;
   dh.save();
 
   const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
-  udh.quotesCount = udh.quotesCount.plus(BigInt.fromString("1"));
+  udh.tradeVolume = udh.tradeVolume.plus(history.volume);
+  udh.openTradeVolume = udh.openTradeVolume.plus(history.volume);
+  udh.generatedFee = udh.generatedFee.plus(tradingFee);
   udh.updateTimestamp = event.block.timestamp;
   udh.save();
 
@@ -278,35 +233,208 @@ export function handleSendQuote(event: SendQuote): void {
     account.user,
     quote.symbolId
   );
-  usdh.quotesCount = usdh.quotesCount.plus(BigInt.fromString("1"));
+  usdh.tradeVolume = usdh.tradeVolume.plus(history.volume);
+  usdh.openTradeVolume = usdh.openTradeVolume.plus(history.volume);
+  usdh.generatedFee = usdh.generatedFee.plus(tradingFee);
   usdh.updateTimestamp = event.block.timestamp;
   usdh.save();
 
   const th = getTotalHistory(event.block.timestamp, account.accountSource);
-  th.quotesCount = th.quotesCount.plus(BigInt.fromString("1"));
+  th.tradeVolume = th.tradeVolume.plus(additionalVolume);
+  th.closeTradeVolume = th.closeTradeVolume.plus(additionalVolume);
   th.updateTimestamp = event.block.timestamp;
   th.save();
 
   const uth = getUserTotalHistory(event.block.timestamp, account.accountSource, account.user);
-  uth.quotesCount = uth.quotesCount.plus(BigInt.fromString("1"));
+  uth.tradeVolume = uth.tradeVolume.plus(history.volume);
+  uth.openTradeVolume = uth.openTradeVolume.plus(history.volume);
+  uth.generatedFee = uth.generatedFee.plus(tradingFee);
+  uth.updateTimestamp = event.block.timestamp;
+  uth.save();
+
+  let stv = getSymbolTradeVolume(quote.symbolId, event.block.timestamp, account.accountSource);
+  stv.volume = stv.volume.plus(additionalVolume);
+  stv.updateTimestamp = event.block.timestamp;
+  stv.save();
+
+  let dsv = getSymbolDailyTradeVolume(quote.symbolId, event.block.timestamp, account.accountSource);
+  dsv.volume = dsv.volume.plus(history.volume);
+  dsv.updateTimestamp = event.block.timestamp;
+  dsv.save();
+
+  updateDailyOpenInterest(quote.symbolId, event.block.timestamp, history.volume, true, account.accountSource);
+}
+
+export function handleAllocatePartyA(event: AllocatePartyA): void {
+  let account = AccountModel.load(event.params.user.toHexString())!;
+  account.allocated = account.allocated.plus(event.params.amount);
+  account.updateTimestamp = event.block.timestamp;
+  account.save();
+
+  updateActivityTimestamps(account, event.block.timestamp);
+
+  let allocate = new BalanceChange(event.transaction.hash.toHex() + "-" + event.logIndex.toHexString());
+  allocate.type = "ALLOCATE_PARTY_A";
+  allocate.timestamp = event.block.timestamp;
+  allocate.blockNumber = event.block.number;
+  allocate.transaction = event.transaction.hash;
+  allocate.amount = event.params.amount;
+  allocate.account = account.id;
+  allocate.collateral = getConfiguration(event).collateral;
+  allocate.save();
+
+  let user = User.load(account.user);
+  if (!user) {
+    user = createNewUser(event.params.user, account.accountSource, event.block, event.transaction);
+  }
+  user.allocated = user.allocated.plus(event.params.amount);
+  user.save();
+
+  const dh = getDailyHistoryForTimestamp(event.block.timestamp, account.accountSource);
+  dh.allocate = dh.allocate.plus(allocate.amount);
+  dh.updateTimestamp = event.block.timestamp;
+  dh.save();
+
+  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
+  udh.allocate = udh.allocate.plus(allocate.amount);
+  udh.updateTimestamp = event.block.timestamp;
+  udh.save();
+
+  const th = getTotalHistory(event.block.timestamp, account.accountSource);
+  th.allocate = th.allocate.plus(allocate.amount);
+  th.updateTimestamp = event.block.timestamp;
+  th.save();
+
+  const uth = getUserTotalHistory(event.block.timestamp, account.accountSource, account.user);
+  uth.allocate = uth.allocate.plus(allocate.amount);
   uth.updateTimestamp = event.block.timestamp;
   uth.save();
 }
 
-export function handleDiamondCut(event: DiamondCut): void {}
+export function handleDeallocatePartyA(event: DeallocatePartyA): void {
+  let account = AccountModel.load(event.params.user.toHexString());
+  if (account == null) return;
+  account.deallocated = account.deallocated.plus(event.params.amount);
+  account.updateTimestamp = event.block.timestamp;
+  account.save();
+  updateActivityTimestamps(account, event.block.timestamp);
+  let deallocate = new BalanceChange(event.transaction.hash.toHex() + "-" + event.logIndex.toHexString());
+  deallocate.type = "DEALLOCATE_PARTY_A";
+  deallocate.timestamp = event.block.timestamp;
+  deallocate.blockNumber = event.block.number;
+  deallocate.transaction = event.transaction.hash;
+  deallocate.amount = event.params.amount;
+  deallocate.account = account.id;
+  deallocate.collateral = getConfiguration(event).collateral;
+  deallocate.save();
 
-export function handleAcceptCancelCloseRequest(event: AcceptCancelCloseRequest): void {
-  let quote = QuoteModel.load(event.params.quoteId.toString())!;
-  quote.quoteStatus = QuoteStatus.OPENED;
-  quote.save();
+  let user = User.load(account.user);
+  if (!user) {
+    user = createNewUser(event.params.user, account.accountSource, event.block, event.transaction);
+  }
+  user.deallocated = user.deallocated.plus(event.params.amount);
+  user.save();
+
+  const dh = getDailyHistoryForTimestamp(event.block.timestamp, account.accountSource);
+  dh.deallocate = dh.deallocate.plus(deallocate.amount);
+  dh.updateTimestamp = event.block.timestamp;
+  dh.save();
+
+  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
+  udh.deallocate = udh.deallocate.plus(deallocate.amount);
+  udh.updateTimestamp = event.block.timestamp;
+  udh.save();
+
+  const th = getTotalHistory(event.block.timestamp, account.accountSource);
+  th.deallocate = th.deallocate.plus(deallocate.amount);
+  th.updateTimestamp = event.block.timestamp;
+  th.save();
+
+  const uth = getUserTotalHistory(event.block.timestamp, account.accountSource, account.user);
+  uth.deallocate = uth.deallocate.plus(deallocate.amount);
+  uth.updateTimestamp = event.block.timestamp;
+  uth.save();
 }
 
-export function handleAcceptCancelRequest(event: AcceptCancelRequest): void {
-  let quote = QuoteModel.load(event.params.quoteId.toString());
-  if (quote == null) return;
-  quote.quoteStatus = QuoteStatus.CANCELED;
-  quote.updateTimestamp = event.block.timestamp;
-  quote.save();
+export function handleDeposit(event: Deposit): void {
+  let account = AccountModel.load(event.params.user.toHexString());
+  if (account == null) {
+    let user = createNewUser(event.params.user, null, event.block, event.transaction);
+    account = createNewAccount(event.params.user.toHexString(), user, null, event.block, event.transaction);
+  }
+  account.deposit = account.deposit.plus(event.params.amount);
+  account.save();
+  updateActivityTimestamps(account, event.block.timestamp);
+  let deposit = new BalanceChange(event.transaction.hash.toHex() + "-" + event.logIndex.toHexString());
+  deposit.type = "DEPOSIT";
+  deposit.timestamp = event.block.timestamp;
+  deposit.blockNumber = event.block.number;
+  deposit.transaction = event.transaction.hash;
+  deposit.amount = event.params.amount;
+  deposit.account = account.id;
+  deposit.collateral = getConfiguration(event).collateral;
+  deposit.save();
+
+  const dh = getDailyHistoryForTimestamp(event.block.timestamp, account.accountSource);
+  dh.deposit = dh.deposit.plus(deposit.amount);
+  dh.updateTimestamp = event.block.timestamp;
+  dh.save();
+
+  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
+  udh.deposit = udh.deposit.plus(deposit.amount);
+  udh.updateTimestamp = event.block.timestamp;
+  udh.save();
+
+  const th = getTotalHistory(event.block.timestamp, account.accountSource);
+  th.deposit = th.deposit.plus(deposit.amount);
+  th.updateTimestamp = event.block.timestamp;
+  th.save();
+
+  const uth = getUserTotalHistory(event.block.timestamp, account.accountSource, account.user);
+  uth.deposit = uth.deposit.plus(deposit.amount);
+  uth.updateTimestamp = event.block.timestamp;
+  uth.save();
+}
+
+export function handleWithdraw(event: Withdraw): void {
+  let account = AccountModel.load(event.params.sender.toHexString());
+  if (account == null) {
+    let user = createNewUser(event.params.sender, null, event.block, event.transaction);
+    account = createNewAccount(event.params.sender.toHexString(), user, null, event.block, event.transaction);
+  }
+  account.withdraw = account.withdraw.plus(event.params.amount);
+  account.updateTimestamp = event.block.timestamp;
+  account.save();
+  updateActivityTimestamps(account, event.block.timestamp);
+  let withdraw = new BalanceChange(event.transaction.hash.toHex() + "-" + event.logIndex.toHexString());
+  withdraw.type = "WITHDRAW";
+  withdraw.timestamp = event.block.timestamp;
+  withdraw.blockNumber = event.block.number;
+  withdraw.transaction = event.transaction.hash;
+  withdraw.amount = event.params.amount;
+  withdraw.account = account.id;
+  withdraw.collateral = getConfiguration(event).collateral;
+  withdraw.save();
+
+  const dh = getDailyHistoryForTimestamp(event.block.timestamp, account.accountSource);
+  dh.withdraw = dh.withdraw.plus(withdraw.amount);
+  dh.updateTimestamp = event.block.timestamp;
+  dh.save();
+
+  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
+  udh.withdraw = udh.withdraw.plus(withdraw.amount);
+  udh.updateTimestamp = event.block.timestamp;
+  udh.save();
+
+  const th = getTotalHistory(event.block.timestamp, account.accountSource);
+  th.withdraw = th.withdraw.plus(withdraw.amount);
+  th.updateTimestamp = event.block.timestamp;
+  th.save();
+
+  const uth = getUserTotalHistory(event.block.timestamp, account.accountSource, account.user);
+  uth.withdraw = uth.withdraw.plus(withdraw.amount);
+  uth.updateTimestamp = event.block.timestamp;
+  uth.save();
 }
 
 export function handleAllocateForPartyB(event: AllocateForPartyB): void {
@@ -357,101 +485,55 @@ export function handleDeallocateForPartyB(event: DeallocateForPartyB): void {
   user.save();
 }
 
-export function handleDepositForPartyB(event: DepositForPartyB): void {
-  let account = AccountModel.load(event.params.partyB.toHexString());
-  let user: User | null = null;
-  if (account == null) {
-    user = createNewUser(event.params.partyB, null, event.block, event.transaction);
-    account = createNewAccount(event.params.partyB.toHexString(), user, null, event.block, event.transaction);
-  }
-
-  if (!user) {
-    user = User.load(account.user);
-  }
-  if (!user) {
-    user = createNewUser(event.params.partyB, account.accountSource, event.block, event.transaction);
-  }
-
-  account.deposit = account.deposit.plus(event.params.amount);
-  account.updateTimestamp = event.block.timestamp;
-  account.save();
-
-  user.deposit = user.deposit.plus(event.params.amount);
-  user.save();
-}
-
-export function handleDeposit(event: Deposit): void {
-  let account = AccountModel.load(event.params.user.toHexString());
-  if (account == null) {
-    let user = createNewUser(event.params.user, null, event.block, event.transaction);
-    account = createNewAccount(event.params.user.toHexString(), user, null, event.block, event.transaction);
-  }
-  account.deposit = account.deposit.plus(event.params.amount);
+export function handleSendQuote(event: SendQuote): void {
+  let account = AccountModel.load(event.params.partyA.toHexString())!;
+  account.quotesCount = account.quotesCount.plus(BigInt.fromString("1"));
   account.save();
   updateActivityTimestamps(account, event.block.timestamp);
-  let deposit = new BalanceChange(event.transaction.hash.toHex() + "-" + event.logIndex.toHexString());
-  deposit.type = "DEPOSIT";
-  deposit.timestamp = event.block.timestamp;
-  deposit.blockNumber = event.block.number;
-  deposit.transaction = event.transaction.hash;
-  deposit.amount = event.params.amount;
-  deposit.account = account.id;
-  deposit.collateral = getConfiguration(event).collateral;
-  deposit.save();
-
-  const dh = getDailyHistoryForTimestamp(event.block.timestamp, account.accountSource);
-  dh.deposit = dh.deposit.plus(deposit.amount);
-  dh.updateTimestamp = event.block.timestamp;
-  dh.save();
-
-  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
-  udh.deposit = udh.deposit.plus(deposit.amount);
-  udh.updateTimestamp = event.block.timestamp;
-  udh.save();
-
-  const th = getTotalHistory(event.block.timestamp, account.accountSource);
-  th.deposit = th.deposit.plus(deposit.amount);
-  th.updateTimestamp = event.block.timestamp;
-  th.save();
-
-  const uth = getUserTotalHistory(event.block.timestamp, account.accountSource, account.user);
-  uth.deposit = uth.deposit.plus(deposit.amount);
-  uth.updateTimestamp = event.block.timestamp;
-  uth.save();
-}
-
-export function handleEmergencyClosePosition(event: EmergencyClosePosition): void {}
-
-export function handleFillCloseRequest(event: FillCloseRequest): void {
-  let quote = QuoteModel.load(event.params.quoteId.toString())!;
-  quote.avgClosedPrice = quote.avgClosedPrice
-    .times(quote.closedAmount)
-    .plus(event.params.filledAmount.times(event.params.closedPrice))
-    .div(quote.closedAmount.plus(event.params.filledAmount));
-  quote.closedAmount = quote.closedAmount.plus(event.params.filledAmount);
-  if (quote.closedAmount.equals(quote.quantity)) quote.quoteStatus = QuoteStatus.CLOSED;
+  let user = User.load(account.user);
+  if (!user) {
+    user = createNewUser(event.params.partyA, account.accountSource, event.block, event.transaction);
+  }
+  let quote = new QuoteModel(event.params.quoteId.toString());
+  quote.user = user.id;
+  quote.timestamp = event.block.timestamp;
   quote.updateTimestamp = event.block.timestamp;
+  quote.blockNumber = event.block.number;
+  quote.transaction = event.transaction.hash;
+  if (event.params.partyBsWhiteList) {
+    let partyBsWhiteList: Bytes[] = [];
+    for (let i = 0, len = event.params.partyBsWhiteList.length; i < len; i++)
+      partyBsWhiteList.push(event.params.partyBsWhiteList[i]);
+    quote.partyBsWhiteList = partyBsWhiteList;
+  }
+  quote.symbolId = event.params.symbolId;
+  let symbol = Symbol.load(event.params.symbolId.toString());
+
+  quote.symbol = symbol!.id;
+  quote.positionType = event.params.positionType;
+  quote.orderType = event.params.orderType;
+  quote.price = event.params.price;
+  quote.marketPrice = event.params.marketPrice;
+  quote.deadline = event.params.deadline;
+  quote.quantity = event.params.quantity;
+  quote.cva = event.params.cva;
+  quote.partyAmm = event.params.partyAmm;
+  quote.partyBmm = event.params.partyBmm;
+  quote.lf = event.params.lf;
+  quote.quoteStatus = QuoteStatus.PENDING;
+  quote.account = account.id;
+  quote.closedAmount = BigInt.fromString("0");
+  quote.avgClosedPrice = BigInt.fromString("0");
+  quote.accountSource = account.accountSource;
   quote.save();
-  let history = TradeHistoryModel.load(event.params.partyA.toHexString() + "-" + event.params.quoteId.toString())!;
-  const additionalVolume = event.params.filledAmount
-    .times(event.params.closedPrice)
-    .div(BigInt.fromString("10").pow(18));
-  history.volume = history.volume.plus(additionalVolume);
-  history.updateTimestamp = event.block.timestamp;
-  history.quoteStatus = quote.quoteStatus;
-  history.quote = event.params.quoteId;
-  history.save();
-  let account = AccountModel.load(event.params.partyA.toHexString())!;
 
   const dh = getDailyHistoryForTimestamp(event.block.timestamp, account.accountSource);
-  dh.tradeVolume = dh.tradeVolume.plus(additionalVolume);
-  dh.closeTradeVolume = dh.closeTradeVolume.plus(additionalVolume);
+  dh.quotesCount = dh.quotesCount.plus(BigInt.fromString("1"));
   dh.updateTimestamp = event.block.timestamp;
   dh.save();
 
   const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
-  udh.tradeVolume = udh.tradeVolume.plus(additionalVolume);
-  udh.closeTradeVolume = udh.closeTradeVolume.plus(additionalVolume);
+  udh.quotesCount = udh.quotesCount.plus(BigInt.fromString("1"));
   udh.updateTimestamp = event.block.timestamp;
   udh.save();
 
@@ -461,40 +543,85 @@ export function handleFillCloseRequest(event: FillCloseRequest): void {
     account.user,
     quote.symbolId
   );
-  usdh.tradeVolume = usdh.tradeVolume.plus(additionalVolume);
-  usdh.closeTradeVolume = usdh.closeTradeVolume.plus(additionalVolume);
+  usdh.quotesCount = usdh.quotesCount.plus(BigInt.fromString("1"));
   usdh.updateTimestamp = event.block.timestamp;
   usdh.save();
 
   const th = getTotalHistory(event.block.timestamp, account.accountSource);
-  th.tradeVolume = th.tradeVolume.plus(additionalVolume);
-  th.closeTradeVolume = th.closeTradeVolume.plus(additionalVolume);
+  th.quotesCount = th.quotesCount.plus(BigInt.fromString("1"));
   th.updateTimestamp = event.block.timestamp;
   th.save();
 
   const uth = getUserTotalHistory(event.block.timestamp, account.accountSource, account.user);
-  uth.tradeVolume = uth.tradeVolume.plus(additionalVolume);
-  uth.closeTradeVolume = uth.closeTradeVolume.plus(additionalVolume);
+  uth.quotesCount = uth.quotesCount.plus(BigInt.fromString("1"));
   uth.updateTimestamp = event.block.timestamp;
   uth.save();
+}
 
-  let stv = getSymbolTradeVolume(quote.symbolId, event.block.timestamp, account.accountSource);
-  stv.volume = stv.volume.plus(additionalVolume);
-  stv.updateTimestamp = event.block.timestamp;
-  stv.save();
+export function handleExpireQuote(event: ExpireQuote): void {
+  let quote = QuoteModel.load(event.params.quoteId.toString())!;
+  quote.quoteStatus = event.params.quoteStatus;
+  quote.updateTimestamp = event.block.timestamp;
+  quote.save();
+}
 
-  let dsv = getSymbolDailyTradeVolume(quote.symbolId, event.block.timestamp, account.accountSource);
-  dsv.volume = dsv.volume.plus(additionalVolume);
-  dsv.updateTimestamp = event.block.timestamp;
-  dsv.save();
+export function handleRequestToCancelQuote(event: RequestToCancelQuote): void {
+  let account = AccountModel.load(event.params.partyA.toHexString())!;
+  updateActivityTimestamps(account, event.block.timestamp);
+}
 
-  updateDailyOpenInterest(
-    quote.symbolId,
-    event.block.timestamp,
-    unDecimal(event.params.filledAmount.times(quote.openPrice!)),
-    false,
-    account.accountSource
-  );
+export function handleSetSymbolsPrices(event: SetSymbolsPrices): void {
+  const liquidationDetail = getLiquidatedStateOfPartyA(event.address, event.params.partyA);
+  const balanceInfoOfPartyA = getBalanceInfoOfPartyA(event.address, event.params.partyA);
+  if (liquidationDetail == null || balanceInfoOfPartyA == null) return;
+  let model = new PartyALiquidation(event.transaction.hash.toHexString() + event.transactionLogIndex.toString());
+
+  model.partyA = event.params.partyA;
+  model.liquidator = event.params.liquidator;
+  model.liquidationType = liquidationDetail.liquidationType;
+  model.timestamp = event.block.timestamp;
+  model.transaction = event.transaction.hash;
+
+  model.liquidateAllocatedBalance = balanceInfoOfPartyA.value0;
+  model.liquidateCva = balanceInfoOfPartyA.value1;
+  model.liquidateLf = balanceInfoOfPartyA.value2;
+  model.liquidatePendingCva = balanceInfoOfPartyA.value5;
+  model.liquidatePendingLf = balanceInfoOfPartyA.value6;
+
+  model.save();
+}
+
+export function handleForceCancelCloseRequest(event: ForceCancelCloseRequest): void {}
+
+export function handleForceCancelQuote(event: ForceCancelQuote): void {}
+
+export function handleRequestToClosePosition(event: RequestToClosePosition): void {
+  let account = AccountModel.load(event.params.partyA.toHexString())!;
+  updateActivityTimestamps(account, event.block.timestamp);
+
+  let quote = QuoteModel.load(event.params.quoteId.toString())!;
+  quote.quoteStatus = QuoteStatus.CLOSE_PENDING;
+  quote.updateTimestamp = event.block.timestamp;
+  quote.save();
+}
+
+export function handleAcceptCancelRequest(event: AcceptCancelRequest): void {
+  let quote = QuoteModel.load(event.params.quoteId.toString());
+  if (quote == null) return;
+  quote.quoteStatus = QuoteStatus.CANCELED;
+  quote.updateTimestamp = event.block.timestamp;
+  quote.save();
+}
+
+export function handleRequestToCancelCloseRequest(event: RequestToCancelCloseRequest): void {
+  let account = AccountModel.load(event.params.partyA.toHexString())!;
+  updateActivityTimestamps(account, event.block.timestamp);
+}
+
+export function handleAcceptCancelCloseRequest(event: AcceptCancelCloseRequest): void {
+  let quote = QuoteModel.load(event.params.quoteId.toString())!;
+  quote.quoteStatus = QuoteStatus.OPENED;
+  quote.save();
 }
 
 export function handleLockQuote(event: LockQuote): void {
@@ -502,6 +629,14 @@ export function handleLockQuote(event: LockQuote): void {
   quote.updateTimestamp = event.block.timestamp;
   quote.partyB = event.params.partyB;
   quote.quoteStatus = QuoteStatus.LOCKED;
+  quote.save();
+}
+
+export function handleUnlockQuote(event: UnlockQuote): void {
+  let quote = QuoteModel.load(event.params.quoteId.toString())!;
+  quote.updateTimestamp = event.block.timestamp;
+  quote.partyB = null;
+  quote.quoteStatus = QuoteStatus.PENDING;
   quote.save();
 }
 
@@ -522,15 +657,12 @@ export function handleOpenPosition(event: OpenPosition): void {
   history.save();
 
   let quote = QuoteModel.load(event.params.quoteId.toString())!;
+  const chainQuote = getQuote(event.address, BigInt.fromString(quote.id))!;
   quote.openPrice = event.params.openedPrice;
-  if (quote.orderType == 0) {
-    quote.cva = quote.cva.times(quote.openPrice!).div(quote.price);
-    quote.lf = quote.lf.times(quote.openPrice!).div(quote.price);
-    quote.mm = quote.mm.times(quote.openPrice!).div(quote.price);
-  }
-  quote.cva = quote.cva.times(event.params.filledAmount).div(quote.quantity);
-  quote.lf = quote.lf.times(event.params.filledAmount).div(quote.quantity);
-  quote.mm = quote.mm.times(event.params.filledAmount).div(quote.quantity);
+  quote.cva = chainQuote.lockedValues.cva;
+  quote.lf = chainQuote.lockedValues.lf;
+  quote.partyAmm = chainQuote.lockedValues.partyAmm;
+  quote.partyBmm = chainQuote.lockedValues.partyBmm;
   quote.quantity = event.params.filledAmount;
   quote.updateTimestamp = event.block.timestamp;
   quote.quoteStatus = QuoteStatus.OPENED;
@@ -607,15 +739,21 @@ export function handleOpenPosition(event: OpenPosition): void {
   updateDailyOpenInterest(quote.symbolId, event.block.timestamp, history.volume, true, account.accountSource);
 }
 
-export function handleTransferAllocation(event: TransferAllocation): void {}
-
-export function handleUnlockQuote(event: UnlockQuote): void {
-  let quote = QuoteModel.load(event.params.quoteId.toString())!;
-  quote.updateTimestamp = event.block.timestamp;
-  quote.partyB = null;
-  quote.quoteStatus = QuoteStatus.PENDING;
-  quote.save();
+export function handleFillCloseRequest(event: FillCloseRequest): void {
+  handleClose(event, "FillCloseRequest");
 }
+
+export function handleEmergencyClosePosition(event: EmergencyClosePosition): void {
+  handleClose(event, "EmergencyClosePosition");
+}
+
+export function handleForceClosePosition(event: ForceClosePosition): void {
+  handleClose(event, "ForceClosePosition");
+}
+
+export function handleDiamondCut(event: DiamondCut): void {}
+
+export function handleTransferAllocation(event: TransferAllocation): void {}
 
 export function handleActiveEmergencyMode(event: ActiveEmergencyMode): void {}
 
@@ -681,13 +819,29 @@ export function handleUnpausePartyAActions(event: UnpausePartyAActions): void {}
 
 export function handleUnpausePartyBActions(event: UnpausePartyBActions): void {}
 
-export function handleFullyLiquidatedPartyA(event: FullyLiquidatedPartyA): void {}
-
 export function handleFullyLiquidatedPartyB(event: FullyLiquidatedPartyB): void {}
 
 export function handleLiquidatePartyA(event: LiquidatePartyA): void {}
 
-export function handleLiquidatePartyB(event: LiquidatePartyB): void {}
+export function handleLiquidatePartyB(event: LiquidatePartyB): void {
+  const balanceInfoOfPartyB = getBalanceInfoOfPartyB(event.address, event.params.partyA, event.params.partyB);
+  if (balanceInfoOfPartyB == null) return;
+  let model = new PartyBLiquidation(event.transaction.hash.toHexString() + event.transactionLogIndex.toString());
+
+  model.partyA = event.params.partyA;
+  model.partyB = event.params.partyB;
+  model.liquidator = event.params.liquidator;
+  model.timestamp = event.block.timestamp;
+  model.transaction = event.transaction.hash;
+
+  model.liquidateAllocatedBalance = balanceInfoOfPartyB.value0;
+  model.liquidateCva = balanceInfoOfPartyB.value1;
+  model.liquidateLf = balanceInfoOfPartyB.value2;
+  model.liquidatePendingCva = balanceInfoOfPartyB.value5;
+  model.liquidatePendingLf = balanceInfoOfPartyB.value6;
+
+  model.save();
+}
 
 export function handleLiquidatePositionsPartyA(event: LiquidatePositionsPartyA): void {
   for (let i = 0; i < event.params.quoteIds.length; i++) {
@@ -791,138 +945,6 @@ export function handleLiquidationDisputed(event: DisputeForLiquidation): void {
   model.timestamp = event.block.timestamp;
   model.transaction = event.transaction.hash;
   model.save();
-}
-
-export function handleAllocatePartyA(event: AllocatePartyA): void {
-  let account = AccountModel.load(event.params.user.toHexString())!;
-  account.allocated = account.allocated.plus(event.params.amount);
-  account.updateTimestamp = event.block.timestamp;
-  account.save();
-
-  updateActivityTimestamps(account, event.block.timestamp);
-
-  let allocate = new BalanceChange(event.transaction.hash.toHex() + "-" + event.logIndex.toHexString());
-  allocate.type = "ALLOCATE_PARTY_A";
-  allocate.timestamp = event.block.timestamp;
-  allocate.blockNumber = event.block.number;
-  allocate.transaction = event.transaction.hash;
-  allocate.amount = event.params.amount;
-  allocate.account = account.id;
-  allocate.collateral = getConfiguration(event).collateral;
-  allocate.save();
-
-  let user = User.load(account.user);
-  if (!user) {
-    user = createNewUser(event.params.user, account.accountSource, event.block, event.transaction);
-  }
-  user.allocated = user.allocated.plus(event.params.amount);
-  user.save();
-
-  const dh = getDailyHistoryForTimestamp(event.block.timestamp, account.accountSource);
-  dh.allocate = dh.allocate.plus(allocate.amount);
-  dh.updateTimestamp = event.block.timestamp;
-  dh.save();
-
-  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
-  udh.allocate = udh.allocate.plus(allocate.amount);
-  udh.updateTimestamp = event.block.timestamp;
-  udh.save();
-
-  const th = getTotalHistory(event.block.timestamp, account.accountSource);
-  th.allocate = th.allocate.plus(allocate.amount);
-  th.updateTimestamp = event.block.timestamp;
-  th.save();
-
-  const uth = getUserTotalHistory(event.block.timestamp, account.accountSource, account.user);
-  uth.allocate = uth.allocate.plus(allocate.amount);
-  uth.updateTimestamp = event.block.timestamp;
-  uth.save();
-}
-
-export function handleDeallocatePartyA(event: DeallocatePartyA): void {
-  let account = AccountModel.load(event.params.user.toHexString());
-  if (account == null) return;
-  account.deallocated = account.deallocated.plus(event.params.amount);
-  account.updateTimestamp = event.block.timestamp;
-  account.save();
-  updateActivityTimestamps(account, event.block.timestamp);
-  let deallocate = new BalanceChange(event.transaction.hash.toHex() + "-" + event.logIndex.toHexString());
-  deallocate.type = "DEALLOCATE_PARTY_A";
-  deallocate.timestamp = event.block.timestamp;
-  deallocate.blockNumber = event.block.number;
-  deallocate.transaction = event.transaction.hash;
-  deallocate.amount = event.params.amount;
-  deallocate.account = account.id;
-  deallocate.collateral = getConfiguration(event).collateral;
-  deallocate.save();
-
-  let user = User.load(account.user);
-  if (!user) {
-    user = createNewUser(event.params.user, account.accountSource, event.block, event.transaction);
-  }
-  user.deallocated = user.deallocated.plus(event.params.amount);
-  user.save();
-
-  const dh = getDailyHistoryForTimestamp(event.block.timestamp, account.accountSource);
-  dh.deallocate = dh.deallocate.plus(deallocate.amount);
-  dh.updateTimestamp = event.block.timestamp;
-  dh.save();
-
-  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
-  udh.deallocate = udh.deallocate.plus(deallocate.amount);
-  udh.updateTimestamp = event.block.timestamp;
-  udh.save();
-
-  const th = getTotalHistory(event.block.timestamp, account.accountSource);
-  th.deallocate = th.deallocate.plus(deallocate.amount);
-  th.updateTimestamp = event.block.timestamp;
-  th.save();
-
-  const uth = getUserTotalHistory(event.block.timestamp, account.accountSource, account.user);
-  uth.deallocate = uth.deallocate.plus(deallocate.amount);
-  uth.updateTimestamp = event.block.timestamp;
-  uth.save();
-}
-
-export function handleWithdraw(event: Withdraw): void {
-  let account = AccountModel.load(event.params.sender.toHexString());
-  if (account == null) {
-    let user = createNewUser(event.params.sender, null, event.block, event.transaction);
-    account = createNewAccount(event.params.sender.toHexString(), user, null, event.block, event.transaction);
-  }
-  account.withdraw = account.withdraw.plus(event.params.amount);
-  account.updateTimestamp = event.block.timestamp;
-  account.save();
-  updateActivityTimestamps(account, event.block.timestamp);
-  let withdraw = new BalanceChange(event.transaction.hash.toHex() + "-" + event.logIndex.toHexString());
-  withdraw.type = "WITHDRAW";
-  withdraw.timestamp = event.block.timestamp;
-  withdraw.blockNumber = event.block.number;
-  withdraw.transaction = event.transaction.hash;
-  withdraw.amount = event.params.amount;
-  withdraw.account = account.id;
-  withdraw.collateral = getConfiguration(event).collateral;
-  withdraw.save();
-
-  const dh = getDailyHistoryForTimestamp(event.block.timestamp, account.accountSource);
-  dh.withdraw = dh.withdraw.plus(withdraw.amount);
-  dh.updateTimestamp = event.block.timestamp;
-  dh.save();
-
-  const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
-  udh.withdraw = udh.withdraw.plus(withdraw.amount);
-  udh.updateTimestamp = event.block.timestamp;
-  udh.save();
-
-  const th = getTotalHistory(event.block.timestamp, account.accountSource);
-  th.withdraw = th.withdraw.plus(withdraw.amount);
-  th.updateTimestamp = event.block.timestamp;
-  th.save();
-
-  const uth = getUserTotalHistory(event.block.timestamp, account.accountSource, account.user);
-  uth.withdraw = uth.withdraw.plus(withdraw.amount);
-  uth.updateTimestamp = event.block.timestamp;
-  uth.save();
 }
 
 // let lastActionTimestamp: BigInt = BigInt.zero();

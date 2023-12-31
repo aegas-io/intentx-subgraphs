@@ -67,9 +67,8 @@ type TradeHistory @entity {
 
 type Quote @entity {
   id: ID!
-  accountSource: Bytes
   account: String!
-  partyBsWhiteList: [Bytes!]
+  accountSource: Bytes
   symbolId: BigInt!
   positionType: Int!
   orderType: Int!
@@ -77,22 +76,22 @@ type Quote @entity {
   marketPrice: BigInt!
   openPrice: BigInt
   deadline: BigInt!
+  partyBsWhiteList: [Bytes!]
   quantity: BigInt!
   cva: BigInt!
-  mm: BigInt!
+  partyAmm: BigInt!
+  partyBmm: BigInt!
   lf: BigInt!
-  maxInterestRate: BigInt!
   quoteStatus: Int!
   blockNumber: BigInt!
   closedAmount: BigInt!
   avgClosedPrice: BigInt!
+  partyB: Bytes
+  collateral: Bytes!
+  liquidatedSide: Int
   timestamp: BigInt!
   updateTimestamp: BigInt!
   transaction: Bytes!
-  partyB: Bytes
-  liquidatedSide: Int
-  
-
   user: User!
   symbol: Symbol!
 }
@@ -252,6 +251,25 @@ type PartyALiquidation @entity {
   liquidationType: Int!
   timestamp: BigInt!
   transaction: Bytes!
+  liquidateAllocatedBalance: BigInt
+  liquidateCva: BigInt
+  liquidatePendingCva: BigInt
+  liquidateLf: BigInt
+  liquidatePendingLf: BigInt
+}
+
+type PartyBLiquidation @entity {
+  id: ID!
+  partyA: Bytes!
+  partyB: Bytes!
+  liquidator: Bytes!
+  timestamp: BigInt!
+  transaction: Bytes!
+  liquidateAllocatedBalance: BigInt
+  liquidateCva: BigInt
+  liquidatePendingCva: BigInt
+  liquidateLf: BigInt
+  liquidatePendingLf: BigInt
 }
 
 type PartyALiquidationDisputed @entity {

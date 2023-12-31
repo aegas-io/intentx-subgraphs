@@ -1,10 +1,10 @@
+import { BigInt } from "@graphprotocol/graph-ts";
+import { Account, User } from "../generated/schema";
 import {
   AddAccount as AddAccountEvent,
   EditAccountName as EditAccountNameEvent,
 } from "../generated/symmioMultiAccount/symmioMultiAccount";
-import { Account, User } from "../generated/schema";
 import { createNewAccount, createNewUser, getDailyHistoryForTimestamp, getTotalHistory } from "./utils";
-import { BigInt } from "@graphprotocol/graph-ts";
 
 export function handleAddAccount(event: AddAccountEvent): void {
   let user = User.load(event.params.user.toHexString());

@@ -10,7 +10,7 @@
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 navid-fkh/symmio_analytics",
     "test": "graph test",
     "prepare:base": "mustache ../configs/base_intentx_0.82.json template.yaml > subgraph.yaml; graph build",
-    "deploy:base": "graph deploy --product hosted-service intent-x/perpetuals-analytics_base_082"
+    "deploy:base": "graph deploy --product hosted-service intent-x/perpetuals-main_base"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.50.1",

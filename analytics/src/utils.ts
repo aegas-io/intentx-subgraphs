@@ -1,18 +1,18 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
-  Account as AccountModel,
   Account,
+  Account as AccountModel,
+  Configuration,
   DailyHistory,
   OpenInterest,
+  SymbolDailyTradeVolume,
   SymbolTradeVolume,
   TotalHistory,
-  User as UserModel,
-  UserDailyHistory,
-  UserTotalHistory,
-  SymbolDailyTradeVolume,
-  Configuration,
   UserActivity,
+  UserDailyHistory,
+  User as UserModel,
   UserSymbolDailyHistory,
+  UserTotalHistory,
 } from "../generated/schema";
 
 import { ethereum } from "@graphprotocol/graph-ts/chain/ethereum";
@@ -274,22 +274,23 @@ export function updateDailyOpenInterest(
 
   const startOfDay = BigInt.fromString((getDateFromTimeStamp(blockTimestamp).getTime() / 1000).toString());
 
-  if (isSameDay(blockTimestamp, oi.timestamp)) {
-    oi.accumulatedAmount = oi.accumulatedAmount.plus(diffInSeconds(blockTimestamp, oi.timestamp).times(oi.amount));
-    dh.openInterest = oi.accumulatedAmount.div(diffInSeconds(blockTimestamp, startOfDay));
-    oiForSymbol.accumulatedAmount = oiForSymbol.accumulatedAmount.plus(
-      diffInSeconds(blockTimestamp, oiForSymbol.timestamp).times(oiForSymbol.amount)
-    );
-  } else {
-    dh.openInterest = oi.accumulatedAmount.div(BigInt.fromString("86400"));
-    oi.accumulatedAmount = diffInSeconds(blockTimestamp, startOfDay).times(oi.amount);
-    oiForSymbol.accumulatedAmount = diffInSeconds(blockTimestamp, startOfDay).times(oiForSymbol.amount);
-  }
   oi.amount = increase ? oi.amount.plus(value) : oi.amount.minus(value);
   oi.timestamp = blockTimestamp;
   oiForSymbol.amount = increase ? oiForSymbol.amount.plus(value) : oiForSymbol.amount.minus(value);
   oiForSymbol.timestamp = blockTimestamp;
   dh.updateTimestamp = blockTimestamp;
+
+  if (isSameDay(blockTimestamp, oi.timestamp)) {
+    oi.accumulatedAmount = oi.accumulatedAmount.plus(diffInSeconds(blockTimestamp, oi.timestamp).times(oi.amount));
+    dh.openInterest = oi.amount;
+    oiForSymbol.accumulatedAmount = oiForSymbol.accumulatedAmount.plus(
+      diffInSeconds(blockTimestamp, oiForSymbol.timestamp).times(oiForSymbol.amount)
+    );
+  } else {
+    dh.openInterest = oi.amount;
+    oi.accumulatedAmount = diffInSeconds(blockTimestamp, startOfDay).times(oi.amount);
+    oiForSymbol.accumulatedAmount = diffInSeconds(blockTimestamp, startOfDay).times(oiForSymbol.amount);
+  }
 
   if (oi.amount > dh.maxOpenInterest) {
     dh.maxOpenInterest = oi.amount;

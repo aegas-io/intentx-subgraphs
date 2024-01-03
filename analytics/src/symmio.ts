@@ -262,7 +262,13 @@ function handleClose(_event: ethereum.Event, name: string): void {
   dsv.updateTimestamp = event.block.timestamp;
   dsv.save();
 
-  updateDailyOpenInterest(quote.symbolId, event.block.timestamp, history.volume, true, account.accountSource);
+  updateDailyOpenInterest(
+    quote.symbolId,
+    event.block.timestamp,
+    unDecimal(event.params.filledAmount.times(quote.openPrice!)),
+    true,
+    account.accountSource
+  );
 }
 
 export function handleAllocatePartyA(event: AllocatePartyA): void {

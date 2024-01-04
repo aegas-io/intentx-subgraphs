@@ -97,8 +97,8 @@ type Quote @entity {
   transaction: Bytes!
   user: User!
   symbol: Symbol!
-  openPriceFundingRate: BigInt!
-  paidFundingRate: BigInt!
+  openPriceFundingRate: BigInt
+  paidFundingRate: BigInt
   paidFundingFeeHistory: [PaidFundingFee!]! @derivedFrom(field: "quote")
 }
 

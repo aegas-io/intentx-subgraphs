@@ -1324,6 +1324,7 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
     paidFundingRate.timestamp = event.block.timestamp;
     paidFundingRate.transaction = event.transaction.hash;
     paidFundingRate.rateApplied = rate;
+    paidFundingRate.user = quote.user;
     paidFundingRate.save();
   }
 }

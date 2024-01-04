@@ -1288,11 +1288,7 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
     const quote = QuoteModel.load(qId.toString())!;
     const user = User.load(quote.user)!;
     const accountAddress = quote.account;
-    const accountSource = user.accountSource;
-    const accountId =
-      accountAddress +
-      "_" +
-      (accountSource === null ? "null" : accountSource.toHexString());
+    const accountId = accountAddress;
 
     const rate = rates[i];
     let newPrice: BigInt;

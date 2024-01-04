@@ -7,6 +7,7 @@ import {
   AllocateForPartyB,
   AllocatePartyA,
   AllocatePartyB,
+  ChargeFundingRate,
   DeactiveEmergencyMode,
   DeallocateForPartyB,
   DeallocatePartyA,
@@ -71,6 +72,7 @@ import {
   Account as AccountModel,
   BalanceChange,
   GrantedRole,
+  PaidFundingFee,
   PartyALiquidation,
   PartyALiquidationDisputed,
   PartyBLiquidation,
@@ -878,6 +880,8 @@ export function handleOpenPosition(event: OpenPosition): void {
   let quote = QuoteModel.load(event.params.quoteId.toString())!;
   const chainQuote = getQuote(event.address, BigInt.fromString(quote.id))!;
   quote.openPrice = event.params.openedPrice;
+  quote.openPriceFundingRate = event.params.openedPrice;
+  quote.paidFundingRate = BigInt.fromString("0");
   quote.cva = chainQuote.lockedValues.cva;
   quote.lf = chainQuote.lockedValues.lf;
   quote.partyAmm = chainQuote.lockedValues.partyAmm;
@@ -1273,3 +1277,57 @@ export function handleLiquidationDisputed(event: DisputeForLiquidation): void {
 //     lastActionTimestamp = blockTimestamp;
 //   }
 // }
+
+const FACTOR: BigInt = BigInt.fromString(`1000000000000000000`);
+export function handleChargeFundingRate(event: ChargeFundingRate): void {
+  const quoteIds = event.params.quoteIds;
+  const rates = event.params.rates;
+
+  for (let i = 0; i < quoteIds.length; i++) {
+    const qId = quoteIds[i];
+    const quote = QuoteModel.load(qId.toString())!;
+    const user = User.load(quote.user)!;
+    const accountAddress = quote.account;
+    const accountSource = user.accountSource;
+    const accountId =
+      accountAddress +
+      "_" +
+      (accountSource === null ? "null" : accountSource.toHexString());
+
+    const rate = rates[i];
+    let newPrice: BigInt;
+    if (quote.positionType === 0) {
+      //Long
+      newPrice = quote.openPriceFundingRate.plus(
+        quote.openPriceFundingRate.times(rate).div(FACTOR)
+      );
+    } else {
+      newPrice = quote.openPriceFundingRate.minus(
+        quote.openPriceFundingRate.times(rate).div(FACTOR)
+      );
+    }
+
+    const openQuantityUntilNow = quote.quantity.minus(quote.closedAmount);
+    let paidFee: BigInt;
+    paidFee = quote.openPriceFundingRate
+      .times(rate)
+      .times(openQuantityUntilNow)
+      .div(FACTOR)
+      .div(FACTOR);
+
+    quote.paidFundingRate = quote.paidFundingRate.plus(paidFee);
+    quote.openPriceFundingRate = newPrice;
+    quote.save();
+
+    // Creating a new paid funding rate
+    let paidFundingRate = new PaidFundingFee(
+      event.transaction.hash.toHexString() + "_" + qId.toString()
+    );
+    paidFundingRate.quote = qId.toString();
+    paidFundingRate.account = accountId;
+    paidFundingRate.timestamp = event.block.timestamp;
+    paidFundingRate.transaction = event.transaction.hash;
+    paidFundingRate.rateApplied = rate;
+    paidFundingRate.save();
+  }
+}

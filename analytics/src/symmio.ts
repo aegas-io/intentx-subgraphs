@@ -221,8 +221,8 @@ function handleClose(_event: ethereum.Event, name: string): void {
   dh.save();
 
   const udh = getUserDailyHistoryForTimestamp(event.block.timestamp, account.accountSource, account.user);
-  udh.tradeVolume = udh.tradeVolume.plus(history.volume);
-  udh.openTradeVolume = udh.openTradeVolume.plus(history.volume);
+  udh.tradeVolume = udh.tradeVolume.plus(additionalVolume);
+  udh.closeTradeVolume = udh.openTradeVolume.plus(additionalVolume);
   udh.generatedFee = udh.generatedFee.plus(tradingFee);
   udh.updateTimestamp = event.block.timestamp;
   udh.save();
@@ -233,8 +233,8 @@ function handleClose(_event: ethereum.Event, name: string): void {
     account.user,
     quote.symbolId
   );
-  usdh.tradeVolume = usdh.tradeVolume.plus(history.volume);
-  usdh.openTradeVolume = usdh.openTradeVolume.plus(history.volume);
+  usdh.tradeVolume = usdh.tradeVolume.plus(additionalVolume);
+  usdh.closeTradeVolume = usdh.openTradeVolume.plus(additionalVolume);
   usdh.generatedFee = usdh.generatedFee.plus(tradingFee);
   usdh.updateTimestamp = event.block.timestamp;
   usdh.save();
@@ -246,8 +246,8 @@ function handleClose(_event: ethereum.Event, name: string): void {
   th.save();
 
   const uth = getUserTotalHistory(event.block.timestamp, account.accountSource, account.user);
-  uth.tradeVolume = uth.tradeVolume.plus(history.volume);
-  uth.openTradeVolume = uth.openTradeVolume.plus(history.volume);
+  uth.tradeVolume = uth.tradeVolume.plus(additionalVolume);
+  uth.closeTradeVolume = uth.openTradeVolume.plus(additionalVolume);
   uth.generatedFee = uth.generatedFee.plus(tradingFee);
   uth.updateTimestamp = event.block.timestamp;
   uth.save();
@@ -258,7 +258,7 @@ function handleClose(_event: ethereum.Event, name: string): void {
   stv.save();
 
   let dsv = getSymbolDailyTradeVolume(quote.symbolId, event.block.timestamp, account.accountSource);
-  dsv.volume = dsv.volume.plus(history.volume);
+  dsv.volume = dsv.volume.plus(additionalVolume);
   dsv.updateTimestamp = event.block.timestamp;
   dsv.save();
 

@@ -1021,6 +1021,7 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
     paidFundingRate.transaction = event.transaction.hash;
     paidFundingRate.rateApplied = rate;
     paidFundingRate.user = quote.user;
+    paidFundingRate.paidFee = paidFee;
     paidFundingRate.save();
   }
 }

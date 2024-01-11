@@ -2,16 +2,12 @@
   "name": "result-quote",
   "license": "UNLICENSED",
   "scripts": {
-    "prepare:bsc": "mustache ../configs/bsc.json template.yaml > subgraph.yaml;graph build",
-    "deploy:bsc": "graph deploy --product hosted-service navid-fkh/symmio_bsc",
-    "prepare:fantom": "mustache ../configs/fantom.json template.yaml > subgraph.yaml;graph build",
-    "deploy:fantom": "graph deploy --product hosted-service navid-fkh/symmio_fantom",
-    "prepare:fantom_test": "mustache ../configs/fantom_test.json template.yaml > subgraph.yaml;graph build",
-    "deploy:fantom_test": "graph deploy --product hosted-service navid-fkh/symmio_fantom_test",
-    "prepare:base": "mustache ../configs/base.json template.yaml > subgraph.yaml;graph build",
-    "deploy:base": "graph deploy --product hosted-service navid-fkh/symmio_base",
-    "prepare:fantom_batchLiq": "mustache ../configs/fantom_batchLiq.json template.yaml > subgraph.yaml;graph build",
-    "deploy:fantom_batchLiq": "graph deploy --product hosted-service navid-fkh/symmio_ftm_batchliq",
-    "deploy:all": "npm run prepare:bsc;npm run deploy:bsc;npm run prepare:fantom;npm run deploy:fantom;npm run prepare:base;npm run deploy:base"
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "test": "graph test",
+    "prepare:base": "mustache ../configs/base_intentx_0.82.json template.yaml > subgraph.yaml; graph build",
+    "deploy:base": "graph deploy --studio intentx-main_082",
+    "prepare:test_bsc": "mustache ../configs/test_bsc_intentx_082.json template.yaml > subgraph.yaml; graph build",
+    "deploy:test_bsc": "graph deploy --studio intentx_main_082_test_bsc"
   }
 }

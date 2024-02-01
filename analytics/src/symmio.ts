@@ -1368,7 +1368,16 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
       );
       hourlySymbolFundingRateAverage.lastUpdatedTimestamp =
         event.block.timestamp;
-      hourlySymbolFundingRateAverage.rateApplied = rate;
+      // Making average of 2 rates
+      if (hourlySymbolFundingRateAverage.rateApplied === BigInt.fromI32(0)) {
+        hourlySymbolFundingRateAverage.rateApplied = rate;
+      } else {
+        hourlySymbolFundingRateAverage.rateApplied =
+          hourlySymbolFundingRateAverage.rateApplied
+            .plus(rate)
+            .div(BigInt.fromI32(2));
+      }
+
       hourlySymbolFundingRateAverage.save();
     }
   }

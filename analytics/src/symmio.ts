@@ -95,6 +95,8 @@ import {
   createNewUser,
   getConfiguration,
   getDailyHistoryForTimestamp,
+  getHourlySymbolFundingRateAverage,
+  getSolver,
   getSymbolDailyTradeVolume,
   getSymbolTradeVolume,
   getTotalHistory,
@@ -845,6 +847,8 @@ export function handleLockQuote(event: LockQuote): void {
   let quote = QuoteModel.load(event.params.quoteId.toString())!;
   quote.updateTimestamp = event.block.timestamp;
   quote.partyB = event.params.partyB;
+  const solver = getSolver(event.params.partyB.toHexString());
+  quote.solver = solver.id;
   quote.quoteStatus = QuoteStatus.LOCKED;
   quote.save();
 }
@@ -853,6 +857,7 @@ export function handleUnlockQuote(event: UnlockQuote): void {
   let quote = QuoteModel.load(event.params.quoteId.toString())!;
   quote.updateTimestamp = event.block.timestamp;
   quote.partyB = null;
+  quote.solver = "";
   quote.quoteStatus = QuoteStatus.PENDING;
   quote.save();
 }
@@ -1283,14 +1288,35 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
   const quoteIds = event.params.quoteIds;
   const rates = event.params.rates;
 
+  let ratesBySolverBySymbolDictionary = new Map<string, Map<string, BigInt>>();
+
   for (let i = 0; i < quoteIds.length; i++) {
     const qId = quoteIds[i];
     const quote = QuoteModel.load(qId.toString())!;
+    const solver = quote.solver;
     const user = User.load(quote.user)!;
     const accountAddress = quote.account;
     const accountId = accountAddress;
-
+    const symbol = quote.symbol;
     const rate = rates[i];
+
+    if (solver) {
+      let ratesBySolver = ratesBySolverBySymbolDictionary.get(solver);
+      if (!ratesBySolver) {
+        ratesBySolver = new Map<string, BigInt>();
+        ratesBySolverBySymbolDictionary.set(solver, ratesBySolver);
+      }
+
+      let symbolRate = ratesBySolver.get(symbol);
+      if (!symbolRate) {
+        ratesBySolver.set(symbol, rate);
+      } else {
+        // Average between both rates
+        const averagedRate = symbolRate.plus(rate).div(BigInt.fromString("2"));
+        ratesBySolver.set(symbol, averagedRate);
+      }
+    }
+
     let newPrice: BigInt;
     if (quote.positionType === 0) {
       //Long
@@ -1327,5 +1353,23 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
     paidFundingRate.user = quote.user;
     paidFundingRate.paidFee = paidFee;
     paidFundingRate.save();
+  }
+  // Processing ratesBySolverBySymbolDictionary
+  for (let i = 0; i < ratesBySolverBySymbolDictionary.keys().length; i++) {
+    const solver = ratesBySolverBySymbolDictionary.keys()[i];
+    const ratesBySymbol = ratesBySolverBySymbolDictionary.get(solver)!;
+    for (let j = 0; j < ratesBySymbol.keys().length; j++) {
+      const symbol = ratesBySymbol.keys()[j];
+      const rate = ratesBySymbol.get(symbol)!;
+      let hourlySymbolFundingRateAverage = getHourlySymbolFundingRateAverage(
+        event.block.timestamp,
+        symbol,
+        solver
+      );
+      hourlySymbolFundingRateAverage.lastUpdatedTimestamp =
+        event.block.timestamp;
+      hourlySymbolFundingRateAverage.rateApplied = rate;
+      hourlySymbolFundingRateAverage.save();
+    }
   }
 }

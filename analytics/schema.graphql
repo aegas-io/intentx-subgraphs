@@ -96,9 +96,10 @@ type Quote @entity {
   updateTimestamp: BigInt!
   transaction: Bytes!
   user: User!
+  solver: Solver
   symbol: Symbol!
-  openPriceFundingRate: BigInt
-  paidFundingRate: BigInt
+  openPriceFundingRate: BigInt!
+  paidFundingRate: BigInt!
   paidFundingFeeHistory: [PaidFundingFee!]! @derivedFrom(field: "quote")
 }
 
@@ -201,6 +202,7 @@ type Symbol @entity {
   dailyTradeVolume: [SymbolDailyTradeVolume!] @derivedFrom(field: "symbol")
   openInterests: [OpenInterest!] @derivedFrom(field: "symbol")
   quotes: [Quote!]! @derivedFrom(field: "symbol")
+  fundingRateEpochDuration: BigInt!
 }
 
 type SymbolFeeChange @entity {
@@ -310,4 +312,22 @@ type PaidFundingFee @entity {
   transaction: Bytes!
   rateApplied: BigInt!
   paidFee: BigInt!
+}
+
+type Solver @entity {
+  id: ID!
+  address: Bytes
+  quotes: [Quote!]! @derivedFrom(field: "solver")
+}
+
+type HourlySymbolFundingRateAverage @entity {
+  id: ID!
+  symbol: Symbol!
+  solver: Solver!
+
+  timestamp: BigInt!
+  lastUpdatedTimestamp: BigInt!
+
+  rateApplied: BigInt!
+  fundingRateEpochDuration: BigInt!
 }

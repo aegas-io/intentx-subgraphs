@@ -172,6 +172,7 @@ export function handleAddSymbol(event: AddSymbol): void {
   symbol.tradingFee = event.params.tradingFee;
   symbol.timestamp = event.block.timestamp;
   symbol.updateTimestamp = event.block.timestamp;
+  symbol.fundingRateEpochDuration = event.params.fundingRateEpochDuration;
   symbol.save();
 }
 

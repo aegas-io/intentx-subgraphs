@@ -484,7 +484,7 @@ export function getHourlySymbolFundingRateAverage(
   timestamp: BigInt,
   symbol: string,
   solver: string
-) {
+): HourlySymbolFundingRateAverage {
   const symbolRecord = Symbol.load(symbol);
 
   const dateStr = getDateFromTimeStamp(timestamp).getTime().toString();

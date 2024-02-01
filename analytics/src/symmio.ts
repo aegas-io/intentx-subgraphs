@@ -691,6 +691,7 @@ export function handleSendQuote(event: SendQuote): void {
   quote.timestamp = event.block.timestamp;
   quote.updateTimestamp = event.block.timestamp;
   quote.blockNumber = event.block.number;
+  quote.openPriceFundingRate = BigInt.fromString("0");
   quote.transaction = event.transaction.hash;
   if (event.params.partyBsWhiteList) {
     let partyBsWhiteList: Bytes[] = [];
@@ -1319,6 +1320,7 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
     }
 
     let newPrice: BigInt;
+
     if (quote.positionType === 0) {
       //Long
       newPrice = quote.openPriceFundingRate.plus(

@@ -692,6 +692,7 @@ export function handleSendQuote(event: SendQuote): void {
   quote.updateTimestamp = event.block.timestamp;
   quote.blockNumber = event.block.number;
   quote.openPriceFundingRate = BigInt.fromString("0");
+  quote.paidFundingRate = BigInt.fromString("0");
   quote.transaction = event.transaction.hash;
   if (event.params.partyBsWhiteList) {
     let partyBsWhiteList: Bytes[] = [];
@@ -1303,19 +1304,21 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
     const rate = rates[i];
 
     if (solver) {
-      let ratesBySolver = ratesBySolverBySymbolDictionary.get(solver);
-      if (!ratesBySolver) {
-        ratesBySolver = new Map<string, BigInt>();
-        ratesBySolverBySymbolDictionary.set(solver, ratesBySolver);
-      }
-
-      let symbolRate = ratesBySolver.get(symbol);
-      if (!symbolRate) {
+      if (!ratesBySolverBySymbolDictionary.has(solver)) {
+        const ratesBySolver = new Map<string, BigInt>();
         ratesBySolver.set(symbol, rate);
+        ratesBySolverBySymbolDictionary.set(solver, ratesBySolver);
       } else {
-        // Average between both rates
-        const averagedRate = symbolRate.plus(rate).div(BigInt.fromString("2"));
-        ratesBySolver.set(symbol, averagedRate);
+        const ratesBySolver = ratesBySolverBySymbolDictionary.get(solver)!;
+        if (!ratesBySolver.has(symbol)) {
+          ratesBySolver.set(symbol, rate);
+        } else {
+          const averagedRate = ratesBySolver
+            .get(symbol)!
+            .plus(rate)
+            .div(BigInt.fromString("2"));
+          ratesBySolver.set(symbol, averagedRate);
+        }
       }
     }
 

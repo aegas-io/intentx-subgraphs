@@ -98,7 +98,7 @@ type Quote @entity {
   user: User!
   solver: Solver
   symbol: Symbol!
-  openPriceFundingRate: BigInt
+  openPriceFundingRate: BigInt!
   paidFundingRate: BigInt!
   paidFundingFeeHistory: [PaidFundingFee!]! @derivedFrom(field: "quote")
 }
@@ -318,6 +318,7 @@ type Solver @entity {
   id: ID!
   address: Bytes
   quotes: [Quote!]! @derivedFrom(field: "solver")
+  hourlySymbolFundingRateAverage: [HourlySymbolFundingRateAverage!]! @derivedFrom(field: "solver")
 }
 
 type HourlySymbolFundingRateAverage @entity {

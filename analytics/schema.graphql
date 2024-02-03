@@ -330,5 +330,8 @@ type HourlySymbolFundingRateAverage @entity {
   lastUpdatedTimestamp: BigInt!
 
   rateApplied: BigInt!
+  longRateApplied: BigInt!
+  shortRateApplied: BigInt!
+  
   fundingRateEpochDuration: BigInt!
 }

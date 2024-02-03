@@ -497,6 +497,8 @@ export function getHourlySymbolFundingRateAverage(
     dh.timestamp = timestamp;
     dh.lastUpdatedTimestamp = timestamp;
     dh.rateApplied = BigInt.zero();
+    dh.longRateApplied = BigInt.zero();
+    dh.shortRateApplied = BigInt.zero();
     if (symbolRecord !== null) {
       dh.fundingRateEpochDuration = symbolRecord.fundingRateEpochDuration;
     } else {

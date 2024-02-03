@@ -1292,6 +1292,14 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
   const rates = event.params.rates;
 
   let ratesBySolverBySymbolDictionary = new Map<string, Map<string, BigInt>>();
+  let longRatesBySolverBySymbolDictionary = new Map<
+    string,
+    Map<string, BigInt>
+  >();
+  let shortRatesBySolverBySymbolDictionary = new Map<
+    string,
+    Map<string, BigInt>
+  >();
 
   for (let i = 0; i < quoteIds.length; i++) {
     const qId = quoteIds[i];
@@ -1318,6 +1326,45 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
             .plus(rate)
             .div(BigInt.fromString("2"));
           ratesBySolver.set(symbol, averagedRate);
+        }
+      }
+
+      if (quote.positionType === 0) {
+        // Long
+        if (!longRatesBySolverBySymbolDictionary.has(solver)) {
+          const longRatesBySolver = new Map<string, BigInt>();
+          longRatesBySolver.set(symbol, rate);
+          longRatesBySolverBySymbolDictionary.set(solver, longRatesBySolver);
+        } else {
+          const longRatesBySolver =
+            longRatesBySolverBySymbolDictionary.get(solver)!;
+          if (!longRatesBySolver.has(symbol)) {
+            longRatesBySolver.set(symbol, rate);
+          } else {
+            const averagedRate = longRatesBySolver
+              .get(symbol)!
+              .plus(rate)
+              .div(BigInt.fromString("2"));
+            longRatesBySolver.set(symbol, averagedRate);
+          }
+        }
+      } else {
+        if (!shortRatesBySolverBySymbolDictionary.has(solver)) {
+          const shortRatesBySolver = new Map<string, BigInt>();
+          shortRatesBySolver.set(symbol, rate);
+          shortRatesBySolverBySymbolDictionary.set(solver, shortRatesBySolver);
+        } else {
+          const shortRatesBySolver =
+            shortRatesBySolverBySymbolDictionary.get(solver)!;
+          if (!shortRatesBySolver.has(symbol)) {
+            shortRatesBySolver.set(symbol, rate);
+          } else {
+            const averagedRate = shortRatesBySolver
+              .get(symbol)!
+              .plus(rate)
+              .div(BigInt.fromString("2"));
+            shortRatesBySolver.set(symbol, averagedRate);
+          }
         }
       }
     }
@@ -1380,6 +1427,62 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
       } else {
         hourlySymbolFundingRateAverage.rateApplied =
           hourlySymbolFundingRateAverage.rateApplied
+            .plus(rate)
+            .div(BigInt.fromI32(2));
+      }
+
+      hourlySymbolFundingRateAverage.save();
+    }
+  }
+
+  // Processing longRatesBySolverBySymbolDictionary
+  for (let i = 0; i < longRatesBySolverBySymbolDictionary.keys().length; i++) {
+    const solver = longRatesBySolverBySymbolDictionary.keys()[i];
+    const ratesBySymbol = longRatesBySolverBySymbolDictionary.get(solver)!;
+    for (let j = 0; j < ratesBySymbol.keys().length; j++) {
+      const symbol = ratesBySymbol.keys()[j];
+      const rate = ratesBySymbol.get(symbol)!;
+      let hourlySymbolFundingRateAverage = getHourlySymbolFundingRateAverage(
+        event.block.timestamp,
+        symbol,
+        solver
+      );
+      hourlySymbolFundingRateAverage.lastUpdatedTimestamp =
+        event.block.timestamp;
+      // Making average of 2 rates
+      if (hourlySymbolFundingRateAverage.longRateApplied === BigInt.fromI32(0)) {
+        hourlySymbolFundingRateAverage.longRateApplied = rate;
+      } else {
+        hourlySymbolFundingRateAverage.longRateApplied =
+          hourlySymbolFundingRateAverage.longRateApplied
+            .plus(rate)
+            .div(BigInt.fromI32(2));
+      }
+
+      hourlySymbolFundingRateAverage.save();
+    }
+  }
+
+  // Processing shortRatesBySolverBySymbolDictionary
+  for (let i = 0; i < shortRatesBySolverBySymbolDictionary.keys().length; i++) {
+    const solver = shortRatesBySolverBySymbolDictionary.keys()[i];
+    const ratesBySymbol = shortRatesBySolverBySymbolDictionary.get(solver)!;
+    for (let j = 0; j < ratesBySymbol.keys().length; j++) {
+      const symbol = ratesBySymbol.keys()[j];
+      const rate = ratesBySymbol.get(symbol)!;
+      let hourlySymbolFundingRateAverage = getHourlySymbolFundingRateAverage(
+        event.block.timestamp,
+        symbol,
+        solver
+      );
+      hourlySymbolFundingRateAverage.lastUpdatedTimestamp =
+        event.block.timestamp;
+      // Making average of 2 rates
+      if (hourlySymbolFundingRateAverage.shortRateApplied === BigInt.fromI32(0)) {
+        hourlySymbolFundingRateAverage.shortRateApplied = rate;
+      } else {
+        hourlySymbolFundingRateAverage.shortRateApplied =
+          hourlySymbolFundingRateAverage.shortRateApplied
             .plus(rate)
             .div(BigInt.fromI32(2));
       }

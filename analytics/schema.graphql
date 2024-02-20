@@ -101,6 +101,54 @@ type Quote @entity {
   openPriceFundingRate: BigInt!
   paidFundingRate: BigInt!
   paidFundingFeeHistory: [PaidFundingFee!]! @derivedFrom(field: "quote")
+
+  requestedCloseCount: BigInt!
+  quoteCloses: [QuoteClose!]! @derivedFrom(field: "quote")
+
+  requestOpenAt: BigInt
+  requestOpenTransaction: Bytes
+  openedAt: BigInt
+  openTransaction: Bytes
+
+  requestToCancelAt: BigInt
+  requestToCancelTransaction: Bytes
+  
+  cancelAt: BigInt
+  cancelTransaction: Bytes
+  
+  expiredAt: BigInt
+  expiredTransaction: Bytes
+  
+  forceCancelAt: BigInt
+  forceCancelTransaction: Bytes
+}
+
+type QuoteClose @entity {
+  id: ID!
+  quote: Quote!
+
+  filledAt: BigInt
+  fillTransaction: Bytes
+
+  requestCancelAt: BigInt
+  requestCancelTransaction: Bytes
+
+  cancelAt: BigInt
+  cancelTransaction: Bytes
+  
+  requestAt: BigInt
+  requestCloseTransaction: Bytes
+
+  forceCloseAt: BigInt
+  forceCloseTransaction: Bytes
+
+  forceCancelCloseAt: BigInt
+  forceCancelCloseTransaction: Bytes
+
+  orderType: Int!
+  closePrice: BigInt!
+
+  quantity: BigInt!
 }
 
 type DailyHistory @entity {

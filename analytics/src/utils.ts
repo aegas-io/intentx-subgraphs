@@ -6,6 +6,8 @@ import {
   DailyHistory,
   HourlySymbolFundingRateAverage,
   OpenInterest,
+  Quote,
+  QuoteClose,
   Solver,
   Symbol,
   SymbolDailyTradeVolume,
@@ -507,4 +509,11 @@ export function getHourlySymbolFundingRateAverage(
     dh.save();
   }
   return dh;
+}
+
+export function getQuoteClose(quote: Quote): QuoteClose | null {
+  const closeCount = quote.requestedCloseCount;
+  const quoteClose = QuoteClose.load(quote.id + "-" + closeCount.toString());
+
+  return quoteClose;
 }

@@ -77,6 +77,7 @@ import {
   PartyALiquidationDisputed,
   PartyBLiquidation,
   PriceCheck,
+  QuoteClose,
   Quote as QuoteModel,
   Symbol,
   SymbolFeeChange,
@@ -96,6 +97,7 @@ import {
   getConfiguration,
   getDailyHistoryForTimestamp,
   getHourlySymbolFundingRateAverage,
+  getQuoteClose,
   getSolver,
   getSymbolDailyTradeVolume,
   getSymbolTradeVolume,
@@ -244,6 +246,15 @@ function handleClose(_event: ethereum.Event, name: string): void {
     quote.quoteStatus = QuoteStatus.CLOSED;
   quote.updateTimestamp = event.block.timestamp;
   quote.save();
+
+  // Filling the quote close
+  let quoteClose = getQuoteClose(quote);
+  if (quoteClose) {
+    quoteClose.filledAt = event.block.timestamp;
+    quoteClose.fillTransaction = event.transaction.hash;
+    quoteClose.save();
+  }
+
   let history = TradeHistoryModel.load(
     event.params.partyA.toHexString() + "-" + event.params.quoteId.toString()
   )!;
@@ -720,6 +731,9 @@ export function handleSendQuote(event: SendQuote): void {
   quote.avgClosedPrice = BigInt.fromString("0");
   quote.collateral = getConfiguration(event).collateral;
   quote.accountSource = account.accountSource;
+  quote.requestedCloseCount = BigInt.fromString("0");
+  quote.requestOpenAt = event.block.timestamp;
+  quote.requestOpenTransaction = event.transaction.hash;
   quote.save();
 
   const dh = getDailyHistoryForTimestamp(
@@ -768,12 +782,21 @@ export function handleExpireQuote(event: ExpireQuote): void {
   let quote = QuoteModel.load(event.params.quoteId.toString())!;
   quote.quoteStatus = event.params.quoteStatus;
   quote.updateTimestamp = event.block.timestamp;
+  quote.expiredAt = event.block.timestamp;
+  quote.expiredTransaction = event.transaction.hash;
   quote.save();
 }
 
 export function handleRequestToCancelQuote(event: RequestToCancelQuote): void {
   let account = AccountModel.load(event.params.partyA.toHexString())!;
   updateActivityTimestamps(account, event.block.timestamp);
+
+  let quote = QuoteModel.load(event.params.quoteId.toString())!;
+  if (quote) {
+    quote.requestToCancelAt = event.block.timestamp;
+    quote.requestToCancelTransaction = event.transaction.hash;
+    quote.save();
+  }
 }
 
 export function handleSetSymbolsPrices(event: SetSymbolsPrices): void {
@@ -809,7 +832,14 @@ export function handleForceCancelCloseRequest(
   event: ForceCancelCloseRequest
 ): void {}
 
-export function handleForceCancelQuote(event: ForceCancelQuote): void {}
+export function handleForceCancelQuote(event: ForceCancelQuote): void {
+  let quote = QuoteModel.load(event.params.quoteId.toString())!;
+  quote.quoteStatus = QuoteStatus.CANCELED;
+  quote.updateTimestamp = event.block.timestamp;
+  quote.forceCancelAt = event.block.timestamp;
+  quote.forceCancelTransaction = event.transaction.hash;
+  quote.save();
+}
 
 export function handleRequestToClosePosition(
   event: RequestToClosePosition
@@ -820,7 +850,22 @@ export function handleRequestToClosePosition(
   let quote = QuoteModel.load(event.params.quoteId.toString())!;
   quote.quoteStatus = QuoteStatus.CLOSE_PENDING;
   quote.updateTimestamp = event.block.timestamp;
+  quote.requestedCloseCount = quote.requestedCloseCount.plus(
+    BigInt.fromString("1")
+  );
   quote.save();
+
+  // Creating a quote close
+  let quoteClose = new QuoteClose(
+    quote.id + "-" + quote.requestedCloseCount.toString()
+  );
+  quoteClose.quote = quote.id;
+  quoteClose.requestAt = event.block.timestamp;
+  quoteClose.requestCloseTransaction = event.transaction.hash;
+  quoteClose.orderType = event.params.orderType;
+  quoteClose.closePrice = event.params.closePrice;
+  quoteClose.quantity = event.params.closePrice;
+  quoteClose.save();
 }
 
 export function handleAcceptCancelRequest(event: AcceptCancelRequest): void {
@@ -828,6 +873,8 @@ export function handleAcceptCancelRequest(event: AcceptCancelRequest): void {
   if (quote == null) return;
   quote.quoteStatus = QuoteStatus.CANCELED;
   quote.updateTimestamp = event.block.timestamp;
+  quote.cancelAt = event.block.timestamp;
+  quote.cancelTransaction = event.transaction.hash;
   quote.save();
 }
 
@@ -836,6 +883,17 @@ export function handleRequestToCancelCloseRequest(
 ): void {
   let account = AccountModel.load(event.params.partyA.toHexString())!;
   updateActivityTimestamps(account, event.block.timestamp);
+
+  // Requesting cancel on the quote close
+  const quote = QuoteModel.load(event.params.quoteId.toString());
+  if (quote) {
+    const quoteClose = getQuoteClose(quote);
+    if (quoteClose) {
+      quoteClose.requestCancelAt = event.block.timestamp;
+      quoteClose.requestCancelTransaction = event.transaction.hash;
+      quoteClose.save();
+    }
+  }
 }
 
 export function handleAcceptCancelCloseRequest(
@@ -844,6 +902,17 @@ export function handleAcceptCancelCloseRequest(
   let quote = QuoteModel.load(event.params.quoteId.toString())!;
   quote.quoteStatus = QuoteStatus.OPENED;
   quote.save();
+
+  // Cancelling the quote close
+
+  if (quote) {
+    const quoteClose = getQuoteClose(quote);
+    if (quoteClose) {
+      quoteClose.cancelAt = event.block.timestamp;
+      quoteClose.cancelTransaction = event.transaction.hash;
+      quoteClose.save();
+    }
+  }
 }
 
 export function handleLockQuote(event: LockQuote): void {
@@ -897,6 +966,8 @@ export function handleOpenPosition(event: OpenPosition): void {
   quote.quantity = event.params.filledAmount;
   quote.updateTimestamp = event.block.timestamp;
   quote.quoteStatus = QuoteStatus.OPENED;
+  quote.openedAt = event.block.timestamp;
+  quote.openTransaction = event.transaction.hash;
   quote.save();
 
   let priceCheck = new PriceCheck(
@@ -1450,7 +1521,9 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
       hourlySymbolFundingRateAverage.lastUpdatedTimestamp =
         event.block.timestamp;
       // Making average of 2 rates
-      if (hourlySymbolFundingRateAverage.longRateApplied === BigInt.fromI32(0)) {
+      if (
+        hourlySymbolFundingRateAverage.longRateApplied === BigInt.fromI32(0)
+      ) {
         hourlySymbolFundingRateAverage.longRateApplied = rate;
       } else {
         hourlySymbolFundingRateAverage.longRateApplied =
@@ -1478,7 +1551,9 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
       hourlySymbolFundingRateAverage.lastUpdatedTimestamp =
         event.block.timestamp;
       // Making average of 2 rates
-      if (hourlySymbolFundingRateAverage.shortRateApplied === BigInt.fromI32(0)) {
+      if (
+        hourlySymbolFundingRateAverage.shortRateApplied === BigInt.fromI32(0)
+      ) {
         hourlySymbolFundingRateAverage.shortRateApplied = rate;
       } else {
         hourlySymbolFundingRateAverage.shortRateApplied =

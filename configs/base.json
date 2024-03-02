@@ -1,0 +1,16 @@
+{
+  "network": "base",
+  "symmioAddress": "0x52e2230cDb80EDEBDaDafcf24033608C9A636D7D",
+  "symmioStartBlock": "2228875",
+  "symmioVersion": "8.0.0",
+  "multiAccounts": [
+    {
+      "symmioMultiAccountAddress": "0x724796d2e9143920B1b58651B04e1Ed201b8cC98",
+      "symmioMultiAccountStartBlock": "5897272",
+      "symmioMultiAccountName": "MultiAccount1"
+    }
+  ],
+  "analyticsDeployUrl": "intent-x/perpetuals-analytics_base_0_8_0",
+  "mainDeployUrl": "intent-x/perpetuals-main_base",
+  "partiesDeployUrl": "intent-x/perpetuals-parties_base"
+}

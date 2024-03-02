@@ -71,6 +71,7 @@ import {
 import {
   Account as AccountModel,
   BalanceChange,
+  ExecutedLiquidation,
   GrantedRole,
   PaidFundingFee,
   PartyALiquidation,
@@ -1176,7 +1177,15 @@ export function handleFullyLiquidatedPartyB(
   event: FullyLiquidatedPartyB
 ): void {}
 
-export function handleLiquidatePartyA(event: LiquidatePartyA): void {}
+export function handleLiquidatePartyA(event: LiquidatePartyA): void {
+  const executedLiquidation = new ExecutedLiquidation(
+    event.params.partyA.toString() + event.block.hash.toHexString()
+  );
+  executedLiquidation.partyA = event.params.partyA;
+  executedLiquidation.liquidator = event.params.liquidator;
+  executedLiquidation.timestamp = event.block.timestamp;
+  executedLiquidation.save();
+}
 
 export function handleLiquidatePartyB(event: LiquidatePartyB): void {
   const balanceInfoOfPartyB = getBalanceInfoOfPartyB(
@@ -1231,6 +1240,8 @@ function handleLiquidatePosition(_event: ethereum.Event, qId: BigInt): void {
   quote.quoteStatus = QuoteStatus.LIQUIDATED;
   quote.updateTimestamp = event.block.timestamp;
   quote.liquidatedSide = 1;
+  quote.liquidatedAt = event.block.timestamp;
+  quote.liquidatedTransaction = event.transaction.hash;
   quote.save();
   const chainQuote = getQuote(event.address, qId);
   if (chainQuote == null) return;

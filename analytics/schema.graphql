@@ -121,6 +121,9 @@ type Quote @entity {
   
   forceCancelAt: BigInt
   forceCancelTransaction: Bytes
+
+  liquidatedAt: BigInt
+  liquidatedTransaction: Bytes
 }
 
 type QuoteClose @entity {
@@ -298,6 +301,13 @@ type PriceCheck @entity {
   additionalInfo: String
   timestamp: BigInt!
   transaction: Bytes!
+}
+
+type ExecutedLiquidation @entity {
+  id: ID!
+  partyA: Bytes!
+  liquidator: Bytes!
+  timestamp: BigInt!
 }
 
 type PartyALiquidation @entity {

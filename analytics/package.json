@@ -8,7 +8,9 @@
     "prepare:base": "mustache ../configs/base_intentx_0.82.json template.yaml > subgraph.yaml; graph build",
     "deploy:base": "graph deploy --studio intentx-analytics_082",
     "prepare:test_bsc": "mustache ../configs/test_bsc_intentx_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:test_bsc": "graph deploy --studio intentx_analytics_082_test_bsc"
+    "deploy:test_bsc": "graph deploy --studio intentx_analytics_082_test_bsc",
+    "prepare:core": "mustache ../configs/blast_core_0.82.json template.yaml > subgraph.yaml; graph build",
+    "deploy:core": "graph deploy --studio core-analytics-082"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.50.1",

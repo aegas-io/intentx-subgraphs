@@ -243,8 +243,13 @@ function handleClose(_event: ethereum.Event, name: string): void {
     .plus(event.params.filledAmount.times(event.params.closedPrice))
     .div(quote.closedAmount.plus(event.params.filledAmount));
   quote.closedAmount = quote.closedAmount.plus(event.params.filledAmount);
-  if (quote.closedAmount.equals(quote.quantity))
+  if (quote.closedAmount.equals(quote.quantity)) {
     quote.quoteStatus = QuoteStatus.CLOSED;
+  }
+  else {
+    quote.quoteStatus = QuoteStatus.OPENED;
+  }
+
   quote.updateTimestamp = event.block.timestamp;
   quote.save();
 

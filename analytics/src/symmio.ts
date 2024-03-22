@@ -289,10 +289,10 @@ function handleClose(_event: ethereum.Event, name: string): void {
   const symbol = Symbol.load(quote.symbolId.toString());
   if (symbol == null) return;
 
-  let tradingFee = event.params.filledAmount
+  /* let tradingFee = event.params.filledAmount
     .times(quote.openPrice!)
     .times(symbol.tradingFee)
-    .div(BigInt.fromString("10").pow(36));
+    .div(BigInt.fromString("10").pow(36)); */
 
   const dh = getDailyHistoryForTimestamp(
     event.block.timestamp,
@@ -310,7 +310,7 @@ function handleClose(_event: ethereum.Event, name: string): void {
   );
   udh.tradeVolume = udh.tradeVolume.plus(additionalVolume);
   udh.closeTradeVolume = udh.closeTradeVolume.plus(additionalVolume);
-  udh.generatedFee = udh.generatedFee.plus(tradingFee);
+  // udh.generatedFee = udh.generatedFee.plus(tradingFee); no trading fee on close
   udh.updateTimestamp = event.block.timestamp;
   udh.save();
 
@@ -322,7 +322,7 @@ function handleClose(_event: ethereum.Event, name: string): void {
   );
   usdh.tradeVolume = usdh.tradeVolume.plus(additionalVolume);
   usdh.closeTradeVolume = usdh.closeTradeVolume.plus(additionalVolume);
-  usdh.generatedFee = usdh.generatedFee.plus(tradingFee);
+  // usdh.generatedFee = usdh.generatedFee.plus(tradingFee); no trading fee on close
   usdh.updateTimestamp = event.block.timestamp;
   usdh.save();
 
@@ -339,7 +339,7 @@ function handleClose(_event: ethereum.Event, name: string): void {
   );
   uth.tradeVolume = uth.tradeVolume.plus(additionalVolume);
   uth.closeTradeVolume = uth.closeTradeVolume.plus(additionalVolume);
-  uth.generatedFee = uth.generatedFee.plus(tradingFee);
+  // uth.generatedFee = uth.generatedFee.plus(tradingFee); no trading fee on close
   uth.updateTimestamp = event.block.timestamp;
   uth.save();
 

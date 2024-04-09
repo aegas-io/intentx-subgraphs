@@ -513,6 +513,7 @@ export function handleDeposit(event: Deposit): void {
       event.block,
       event.transaction
     );
+    user.deposit = user.deposit.plus(event.params.amount);
   }
   account.deposit = account.deposit.plus(event.params.amount);
   account.save();
@@ -577,6 +578,7 @@ export function handleWithdraw(event: Withdraw): void {
       event.block,
       event.transaction
     );
+    user.withdraw = user.withdraw.plus(event.params.amount);
   }
   account.withdraw = account.withdraw.plus(event.params.amount);
   account.updateTimestamp = event.block.timestamp;

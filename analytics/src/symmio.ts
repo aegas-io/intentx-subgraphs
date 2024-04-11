@@ -245,8 +245,7 @@ function handleClose(_event: ethereum.Event, name: string): void {
   quote.closedAmount = quote.closedAmount.plus(event.params.filledAmount);
   if (quote.closedAmount.equals(quote.quantity)) {
     quote.quoteStatus = QuoteStatus.CLOSED;
-  }
-  else {
+  } else {
     quote.quoteStatus = QuoteStatus.OPENED;
   }
 
@@ -371,7 +370,22 @@ function handleClose(_event: ethereum.Event, name: string): void {
 }
 
 export function handleAllocatePartyA(event: AllocatePartyA): void {
-  let account = AccountModel.load(event.params.user.toHexString())!;
+  let account = AccountModel.load(event.params.user.toHexString());
+  if (!account) {
+    const user = createNewUser(
+      event.params.user,
+      null,
+      event.block,
+      event.transaction
+    );
+    account = createNewAccount(
+      event.params.user.toHexString(),
+      user,
+      null,
+      event.block,
+      event.transaction
+    );
+  }
   account.allocated = account.allocated.plus(event.params.amount);
   account.updateTimestamp = event.block.timestamp;
   account.save();

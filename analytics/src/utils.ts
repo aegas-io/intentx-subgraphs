@@ -427,6 +427,11 @@ export function createNewUser(
   user.deallocated = BigInt.zero();
   user.deposit = BigInt.zero();
   user.withdraw = BigInt.zero();
+  user.totalTradeCount = BigInt.zero();
+  user.tradesOver1000 = BigInt.zero();
+  user.tradesOver2500 = BigInt.zero();
+  user.tradesOver5000 = BigInt.zero();
+  user.tradesOver10000 = BigInt.zero();
 
   user.save();
   const dh = getDailyHistoryForTimestamp(block.timestamp, accountSource);

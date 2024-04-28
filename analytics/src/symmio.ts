@@ -1081,6 +1081,56 @@ export function handleOpenPosition(event: OpenPosition): void {
   dsv.updateTimestamp = event.block.timestamp;
   dsv.save();
 
+  const userId =
+    account.user +
+    "_" +
+    (account.accountSource === null
+      ? "null"
+      : account.accountSource.toHexString());
+  let user: User | null = User.load(userId);
+
+  if (user) {
+    // Updating totalTradeCountAnalytics if user is not null and position is 100% filled
+
+    const quoteNotional = quote.openPrice!.times(quote.quantity);
+    let totalTradeCount = user.totalTradeCount;
+    user.totalTradeCount = totalTradeCount.plus(BigInt.fromI32(1));
+
+    if (
+      quoteNotional.gt(
+        BigInt.fromString("10000000000000000000000000000000000000000")
+      )
+    ) {
+      let tradesOver10000 = user.tradesOver10000;
+
+      user.tradesOver10000 = tradesOver10000.plus(BigInt.fromI32(1));
+    } else if (
+      quoteNotional.gt(
+        BigInt.fromString("5000000000000000000000000000000000000000")
+      )
+    ) {
+      let tradesOver5000 = user.tradesOver5000;
+
+      user.tradesOver5000 = tradesOver5000.plus(BigInt.fromI32(1));
+    } else if (
+      quoteNotional.gt(
+        BigInt.fromString("2500000000000000000000000000000000000000")
+      )
+    ) {
+      let tradesOver2500 = user.tradesOver2500;
+
+      user.tradesOver2500 = tradesOver2500.plus(BigInt.fromI32(1));
+    } else if (
+      quoteNotional.gt(
+        BigInt.fromString("1000000000000000000000000000000000000000")
+      )
+    ) {
+      let tradesOver1000 = user.tradesOver1000;
+
+      user.tradesOver1000 = tradesOver1000.plus(BigInt.fromI32(1));
+    }
+  }
+
   updateDailyOpenInterest(
     quote.symbolId,
     event.block.timestamp,

@@ -14,7 +14,11 @@
     "prepare:core": "mustache ../configs/blast_core_0.82.json template.yaml > subgraph.yaml; graph build",
     "deploy:core": "graph deploy --studio core-analytics-082",
     "prepare:thena": "mustache ../configs/thena.json template.yaml > subgraph.yaml; graph build",
-    "deploy:thena": "graph deploy --studio thena-analytics"
+    "deploy:thena": "graph deploy --studio thena-analytics",
+    "prepare:mantle": "mustache ../configs/mantle_intentx_0.82.json template.yaml > subgraph.yaml; graph build",
+    "deploy:mantle": "graph deploy mantle_intentx-analytics_082 --node https://subgraph-api.mantle.xyz/deploy --ipfs https://subgraph-api.mantle.xyz/ipfs",
+    "prepare:befi": "mustache ../configs/befi_base_0.82.json template.yaml > subgraph.yaml; graph build",
+    "deploy:befi": "graph deploy --studio befi-analytics-082"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.50.1",

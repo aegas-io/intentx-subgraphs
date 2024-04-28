@@ -16,6 +16,12 @@ type User @entity {
   totalHistory: [UserTotalHistory!]! @derivedFrom(field: "user")
   quotes: [Quote!]! @derivedFrom(field: "user")
 
+  totalTradeCount: BigInt!
+  tradesOver1000: BigInt!
+  tradesOver2500: BigInt!
+  tradesOver5000: BigInt!
+  tradesOver10000: BigInt!
+
   paidFundingFeeHistory: [PaidFundingFee!]! @derivedFrom(field: "user")
 }
 

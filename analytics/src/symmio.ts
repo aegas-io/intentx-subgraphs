@@ -1080,13 +1080,17 @@ export function handleOpenPosition(event: OpenPosition): void {
   dsv.volume = dsv.volume.plus(history.volume);
   dsv.updateTimestamp = event.block.timestamp;
   dsv.save();
+  
+  let user: User | null = User.load(account.user);
 
-  const accountSource = account.accountSource;
-  const userId =
-    account.user +
-    "_" +
-    (accountSource === null ? "null" : accountSource.toHexString());
-  let user: User | null = User.load(userId);
+  if (!user) {
+    user = createNewUser(
+      event.params.partyA,
+      account.accountSource,
+      event.block,
+      event.transaction
+    );
+  }
 
   if (user) {
     // Updating totalTradeCountAnalytics if user is not null and position is 100% filled

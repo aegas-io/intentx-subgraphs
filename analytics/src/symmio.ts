@@ -1081,12 +1081,11 @@ export function handleOpenPosition(event: OpenPosition): void {
   dsv.updateTimestamp = event.block.timestamp;
   dsv.save();
 
+  const accountSource = account.accountSource;
   const userId =
     account.user +
     "_" +
-    (account.accountSource === null
-      ? "null"
-      : account.accountSource.toHexString());
+    (accountSource === null ? "null" : accountSource.toHexString());
   let user: User | null = User.load(userId);
 
   if (user) {

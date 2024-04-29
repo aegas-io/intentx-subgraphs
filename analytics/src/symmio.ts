@@ -1080,7 +1080,7 @@ export function handleOpenPosition(event: OpenPosition): void {
   dsv.volume = dsv.volume.plus(history.volume);
   dsv.updateTimestamp = event.block.timestamp;
   dsv.save();
-  
+
   let user: User | null = User.load(account.user);
 
   if (!user) {
@@ -1132,6 +1132,8 @@ export function handleOpenPosition(event: OpenPosition): void {
 
       user.tradesOver1000 = tradesOver1000.plus(BigInt.fromI32(1));
     }
+
+    user.save();
   }
 
   updateDailyOpenInterest(

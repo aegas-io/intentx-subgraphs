@@ -1107,7 +1107,8 @@ export function handleOpenPosition(event: OpenPosition): void {
       let tradesOver10000 = user.tradesOver10000;
 
       user.tradesOver10000 = tradesOver10000.plus(BigInt.fromI32(1));
-    } else if (
+    }
+    if (
       quoteNotional.gt(
         BigInt.fromString("5000000000000000000000000000000000000000")
       )
@@ -1115,7 +1116,8 @@ export function handleOpenPosition(event: OpenPosition): void {
       let tradesOver5000 = user.tradesOver5000;
 
       user.tradesOver5000 = tradesOver5000.plus(BigInt.fromI32(1));
-    } else if (
+    }
+    if (
       quoteNotional.gt(
         BigInt.fromString("2500000000000000000000000000000000000000")
       )
@@ -1123,7 +1125,8 @@ export function handleOpenPosition(event: OpenPosition): void {
       let tradesOver2500 = user.tradesOver2500;
 
       user.tradesOver2500 = tradesOver2500.plus(BigInt.fromI32(1));
-    } else if (
+    }
+    if (
       quoteNotional.gt(
         BigInt.fromString("1000000000000000000000000000000000000000")
       )

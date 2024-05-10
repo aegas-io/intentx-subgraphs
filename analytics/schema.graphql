@@ -138,6 +138,8 @@ type QuoteClose @entity {
 
   filledAt: BigInt
   fillTransaction: Bytes
+  fullyFilledAt: BigInt
+  fullyFilledAtTx: Bytes
 
   requestCancelAt: BigInt
   requestCancelTransaction: Bytes

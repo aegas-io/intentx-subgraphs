@@ -1,0 +1,16 @@
+{
+  "network": "mantle",
+  "symmioAddress": "0x2Ecc7da3Cc98d341F987C85c3D9FC198570838B5",
+  "symmioStartBlock": "61972155",
+  "symmioVersion": "0.8.2",
+  "multiAccounts": [
+    {
+      "symmioMultiAccountAddress": "0xECbd0788bB5a72f9dFDAc1FFeAAF9B7c2B26E456",
+      "symmioMultiAccountStartBlock": "61972750",
+      "symmioMultiAccountName": "MultiAccount"
+    }
+  ],
+  "analyticsDeployUrl": "intentx/perpetuals-analytics_mantle_082",
+  "mainDeployUrl": "intentx/perpetuals-main_mantle_082",
+  "partiesDeployUrl": "intentx/perpetuals-parties_mantle_082"
+}

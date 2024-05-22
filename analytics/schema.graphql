@@ -111,6 +111,9 @@ type Quote @entity {
   requestedCloseCount: BigInt!
   quoteCloses: [QuoteClose!]! @derivedFrom(field: "quote")
 
+  fullyFilledAt: BigInt
+  fullyFilledAtTx: Bytes
+
   requestOpenAt: BigInt
   requestOpenTransaction: Bytes
   openedAt: BigInt

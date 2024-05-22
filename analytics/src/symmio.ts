@@ -238,10 +238,19 @@ export function handleRoleRevoked(event: RoleRevoked): void {
 function handleClose(_event: ethereum.Event, name: string): void {
   const event = changetype<FillCloseRequest>(_event); // FillClose, ForceClose, EmergencyClose all have the same event signature
   let quote = QuoteModel.load(event.params.quoteId.toString())!;
-  quote.avgClosedPrice = quote.avgClosedPrice
-    .times(quote.closedAmount)
-    .plus(event.params.filledAmount.times(event.params.closedPrice))
-    .div(quote.closedAmount.plus(event.params.filledAmount));
+  if (name == "ForceClosePosition") {
+    // Try get quote.avgClosePrice
+    const quoteData = getQuote(event.address, event.params.quoteId);
+    if (quoteData) {
+      quote.avgClosedPrice = quoteData.avgClosedPrice;
+    }
+  } else {
+    quote.avgClosedPrice = quote.avgClosedPrice
+      .times(quote.closedAmount)
+      .plus(event.params.filledAmount.times(event.params.closedPrice))
+      .div(quote.closedAmount.plus(event.params.filledAmount));
+  }
+
   quote.closedAmount = quote.closedAmount.plus(event.params.filledAmount);
   if (quote.closedAmount.equals(quote.quantity)) {
     quote.quoteStatus = QuoteStatus.CLOSED;
@@ -261,6 +270,11 @@ function handleClose(_event: ethereum.Event, name: string): void {
     if (quote.closedAmount.equals(quote.quantity)) {
       quoteClose.fullyFilledAt = event.block.timestamp;
       quoteClose.fullyFilledAtTx = event.transaction.hash;
+
+      // Updating the quote status
+      quote.fullyFilledAt = event.block.timestamp;
+      quote.fullyFilledAtTx = event.transaction.hash;
+      quote.save();
     }
     quoteClose.save();
   }

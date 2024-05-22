@@ -10,7 +10,7 @@
         "symmioMultiAccountName": "MultiAccount"
       }
     ],
-    "analyticsDeployUrl": "core/perpetuals-analytics_blast_082",
+    "analyticsDeployUrl": "core-analytics-082",
     "mainDeployUrl": "core/perpetuals-main_blast_082",
     "partiesDeployUrl": "core/perpetuals-analytics_blast_082"
   }

@@ -8,7 +8,7 @@
     "prepare:base": "mustache ../configs/aggregated/base_082.json template.yaml > subgraph.yaml; graph build",
     "deploy:base": "graph deploy intentx-base-analytcs-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
     "prepare:blast": "mustache ../configs/aggregated/blast_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:blast": "graph deploy intentx-blast-analytcs-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
+    "deploy:blast": "graph deploy intentx-blast2-analytcs-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
     "prepare:thena": "mustache ../configs/aggregated/bsc_082.json template.yaml > subgraph.yaml; graph build",
     "deploy:thena": "graph deploy thena-bsc-analytcs-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
     "prepare:mantle": "mustache ../configs/aggregated/mantle_082.json template.yaml > subgraph.yaml; graph build",

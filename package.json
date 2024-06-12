@@ -10,5 +10,8 @@
     "matchstick-as": "^0.5.0",
     "mustache": "^4.2.0"
   },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "@0xgraph/cli": "^0.2.0"
+  }
 }

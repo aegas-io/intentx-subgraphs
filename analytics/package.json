@@ -6,13 +6,13 @@
     "build": "graph build",
     "test": "graph test",
     "prepare:base": "mustache ../configs/aggregated/base_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:base": "graph deploy intentx-base-analytcs-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
+    "deploy:base": "graph deploy intentx-base-analytics-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
     "prepare:blast": "mustache ../configs/aggregated/blast_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:blast": "graph deploy intentx-blast2-analytcs-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
+    "deploy:blast": "graph deploy intentx-blast2-analytics-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
     "prepare:thena": "mustache ../configs/aggregated/bsc_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:thena": "graph deploy thena-bsc-analytcs-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
+    "deploy:thena": "graph deploy thena-bsc-analytics-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
     "prepare:mantle": "mustache ../configs/aggregated/mantle_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:mantle": "graph deploy intentx-mantle-analytcs-082 --node https://subgraph-api.mantle.xyz/deploy --ipfs https://subgraph-api.mantle.xyz/ipfs"
+    "deploy:mantle": "graph deploy intentx-mantle-analytics-082 --node https://subgraph-api.mantle.xyz/deploy --ipfs https://subgraph-api.mantle.xyz/ipfs"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.50.1",

@@ -6,7 +6,7 @@
     "build": "graph build",
     "test": "graph test",
     "prepare:base": "mustache ../configs/base_intentx_0.82.json template.yaml > subgraph.yaml; graph build",
-    "deploy:base": "graph deploy --studio intentx-main_082",
+    "deploy:base": "graph deploy intentx-base-activity-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
     "prepare:intentx:blast": "mustache ../configs/blast_intentx_0.82.json template.yaml > subgraph.yaml; graph build",
     "deploy:intentx:blast": "graph deploy --studio intentx-main_082_blast",
     "prepare:test_bsc": "mustache ../configs/test_bsc_intentx_082.json template.yaml > subgraph.yaml; graph build",

@@ -13,6 +13,11 @@
       "symmioMultiAccountAddress": "0xc6Ecf3AB3D09ba6f1565Ad6E139B5D3ba30bB774",
       "symmioMultiAccountStartBlock": "12933620",
       "symmioMultiAccountName": "MultiAccountBefi"
+    },
+    {
+      "symmioMultiAccountAddress": "0xbc029264eb164f36D7DfEfc46A607b66C2b4F379",
+      "symmioMultiAccountStartBlock": "18441381",
+      "symmioMultiAccountName": "Privex"
     }
   ],
   "analyticsDeployUrl": "intent-x/analytics_base_082"

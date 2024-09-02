@@ -6,13 +6,13 @@
     "build": "graph build",
     "test": "graph test",
     "prepare:base": "mustache ../configs/aggregated/base_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:base": "graph deploy intentx-base-analytics-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
+    "deploy:base": "goldsky subgraph deploy intentx-base-analytics-082/0.0.2 --path .",
     "prepare:blast": "mustache ../configs/aggregated/blast_082.json template.yaml > subgraph.yaml; graph build",
     "deploy:blast": "graph deploy intentx-blast-analytics-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
     "prepare:thena": "mustache ../configs/aggregated/bsc_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:thena": "graph deploy thena-bsc-analytics-082 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
+    "deploy:thena": "goldsky subgraph deploy intentx-bsc-analytics-082/0.0.1 --path .",
     "prepare:mantle": "mustache ../configs/aggregated/mantle_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:mantle": "graph deploy intentx-mantle-analytics-082 --node https://subgraph-api.mantle.xyz/deploy --ipfs https://subgraph-api.mantle.xyz/ipfs"
+    "deploy:mantle": "goldsky subgraph deploy intentx-mantle-analytics-082/0.0.1 --path ."
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.50.1",

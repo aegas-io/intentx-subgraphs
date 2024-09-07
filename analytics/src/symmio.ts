@@ -946,7 +946,10 @@ export function handleOpenPosition(event: OpenPosition): void {
   history.save();
 
   let quote = QuoteModel.load(event.params.quoteId.toString())!;
-  const chainQuote = getQuote(event.address, BigInt.fromString(quote.id))!;
+  const chainQuote = getQuote(event.address, BigInt.fromString(quote.id));
+  if (chainQuote == null) {
+    return;
+  }
   quote.openPrice = event.params.openedPrice;
   quote.openPriceFundingRate = event.params.openedPrice;
   quote.paidFundingRate = BigInt.fromString("0");

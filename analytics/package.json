@@ -12,7 +12,7 @@
     "prepare:thena": "mustache ../configs/aggregated/bsc_082.json template.yaml > subgraph.yaml; graph build",
     "deploy:thena": "goldsky subgraph deploy intentx-bsc-analytics-082/0.0.3 --path .",
     "prepare:mantle": "mustache ../configs/aggregated/mantle_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:mantle": "goldsky subgraph deploy intentx-mantle-analytics-082/0.0.1 --path ."
+    "deploy:mantle": "graph deploy mantle_intentx-analytics_082 --node https://subgraph-api.mantle.xyz/deploy --ipfs https://subgraph-api.mantle.xyz/ipfs"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.50.1",

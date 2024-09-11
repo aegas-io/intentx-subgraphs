@@ -8,9 +8,9 @@
     "prepare:base": "mustache ../configs/aggregated/base_082.json template.yaml > subgraph.yaml; graph build",
     "deploy:base": "goldsky subgraph deploy intentx-base-analytics-083/0.0.2 --path .",
     "prepare:blast": "mustache ../configs/aggregated/blast_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:blast": "graph deploy intentx-blast-analytics-083 --node  https://api.0xgraph.xyz/deploy  --ipfs https://api.0xgraph.xyz/ipfs",
+    "deploy:blast": "goldsky subgraph deploy intentx-blast-analytics-083/0.0.2 --path .",
     "prepare:thena": "mustache ../configs/aggregated/bsc_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:thena": "goldsky subgraph deploy intentx-bsc-analytics-082/0.0.7 --path .",
+    "deploy:thena": "goldsky subgraph deploy intentx-bsc-analytics-083/0.0.1 --path .",
     "prepare:mantle": "mustache ../configs/aggregated/mantle_082.json template.yaml > subgraph.yaml; graph build",
     "deploy:mantle": "goldsky subgraph deploy intentx-mantle-analytics-083/0.0.2 --path ."
   },

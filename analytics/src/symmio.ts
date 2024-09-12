@@ -76,6 +76,7 @@ import {
   PaidFundingFee,
   PartyALiquidation,
   PartyALiquidationDisputed,
+  PartyASymbolPrice,
   PartyBLiquidation,
   PriceCheck,
   QuoteClose,
@@ -816,6 +817,32 @@ export function handleSetSymbolsPrices(event: SetSymbolsPrices): void {
   model.liquidatePendingLf = balanceInfoOfPartyA.value6;
 
   model.save();
+
+  // Liquidation price settlement
+  const listOFSymbols = event.params.symbolIds.slice(0);
+  const listOfPrices = event.params.prices.slice(0);
+  for (let i = 0, lenList = listOFSymbols.length; i < lenList; i++) {
+    let entity = PartyASymbolPrice.load(
+      event.params.partyA
+        .toHexString()
+        .concat("-")
+        .concat(listOFSymbols[i].toHex())
+    );
+    if (!entity) {
+      entity = new PartyASymbolPrice(
+        event.params.partyA
+          .toHexString()
+          .concat("-")
+          .concat(listOFSymbols[i].toHex())
+      );
+    }
+    entity.symbolId = listOFSymbols[i];
+    entity.partyA = event.params.partyA;
+    entity.requestedOpenPrice = listOfPrices[i];
+    entity.timeStamp = event.block.timestamp;
+    entity.trHash = event.transaction.hash;
+    entity.save();
+  }
 }
 
 export function handleForceCancelCloseRequest(
@@ -1290,7 +1317,25 @@ function handleLiquidatePosition(_event: ethereum.Event, qId: BigInt): void {
   quote.liquidatedSide = 1;
   quote.liquidatedAt = event.block.timestamp;
   quote.liquidatedTransaction = event.transaction.hash;
+
+  // Liquidation details
+  let liquidationAmount = quote.quantity!.minus(quote.closedAmount!);
+  quote.liquidationAmount = liquidationAmount;
+
+  let partyASymbolPriceEntity = PartyASymbolPrice.load(
+    event.params.partyA
+      .toHexString()
+      .concat("-")
+      .concat(quote.symbolId!.toHex())
+  );
+  if (partyASymbolPriceEntity) {
+    quote.liquidationPrice = partyASymbolPriceEntity.requestedOpenPrice;
+  } else {
+    // log.debug(`Error in get entity liquidate requestedOpenPrice`, []);
+  }
+
   quote.save();
+
   const chainQuote = getQuote(event.address, qId);
   if (chainQuote == null) return;
   const liquidAmount = quote.quantity.minus(quote.closedAmount);

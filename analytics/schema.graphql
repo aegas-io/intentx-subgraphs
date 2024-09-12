@@ -121,18 +121,21 @@ type Quote @entity {
 
   requestToCancelAt: BigInt
   requestToCancelTransaction: Bytes
-  
+
   cancelAt: BigInt
   cancelTransaction: Bytes
-  
+
   expiredAt: BigInt
   expiredTransaction: Bytes
-  
+
   forceCancelAt: BigInt
   forceCancelTransaction: Bytes
 
   liquidatedAt: BigInt
   liquidatedTransaction: Bytes
+
+  liquidationAmount: BigInt
+  liquidationPrice: BigInt
 }
 
 type QuoteClose @entity {
@@ -149,7 +152,7 @@ type QuoteClose @entity {
 
   cancelAt: BigInt
   cancelTransaction: Bytes
-  
+
   requestAt: BigInt
   requestCloseTransaction: Bytes
 
@@ -333,6 +336,7 @@ type PartyALiquidation @entity {
   liquidatePendingCva: BigInt
   liquidateLf: BigInt
   liquidatePendingLf: BigInt
+  liquidatePrice: BigInt
 }
 
 type PartyBLiquidation @entity {
@@ -387,7 +391,8 @@ type Solver @entity {
   id: ID!
   address: Bytes
   quotes: [Quote!]! @derivedFrom(field: "solver")
-  hourlySymbolFundingRateAverage: [HourlySymbolFundingRateAverage!]! @derivedFrom(field: "solver")
+  hourlySymbolFundingRateAverage: [HourlySymbolFundingRateAverage!]!
+    @derivedFrom(field: "solver")
 }
 
 type HourlySymbolFundingRateAverage @entity {
@@ -401,6 +406,15 @@ type HourlySymbolFundingRateAverage @entity {
   rateApplied: BigInt!
   longRateApplied: BigInt!
   shortRateApplied: BigInt!
-  
+
   fundingRateEpochDuration: BigInt!
+}
+
+type PartyASymbolPrice @entity {
+  id: String!
+  partyA: Bytes!
+  symbolId: BigInt!
+  requestedOpenPrice: BigInt!
+  timeStamp: BigInt!
+  trHash: Bytes!
 }

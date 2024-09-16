@@ -136,6 +136,8 @@ type Quote @entity {
 
   liquidationAmount: BigInt
   liquidationPrice: BigInt
+
+  fullyClosedAt: BigInt
 }
 
 type QuoteClose @entity {

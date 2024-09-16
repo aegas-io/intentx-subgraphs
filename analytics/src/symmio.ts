@@ -187,7 +187,10 @@ export function handleRoleRevoked(event: RoleRevoked): void {
 
 function handleClose(_event: ethereum.Event, name: string): void {
   const event = changetype<FillCloseRequest>(_event); // FillClose, ForceClose, EmergencyClose all have the same event signature
-  let quote = QuoteModel.load(event.params.quoteId.toString())!;
+  let quote = QuoteModel.load(event.params.quoteId.toString());
+
+  if (quote == null) return;
+
   if (name == "ForceClosePosition") {
     // Try get quote.avgClosePrice
     const quoteData = getQuote(event.address, event.params.quoteId);
@@ -204,6 +207,7 @@ function handleClose(_event: ethereum.Event, name: string): void {
   quote.closedAmount = quote.closedAmount.plus(event.params.filledAmount);
   if (quote.closedAmount.equals(quote.quantity)) {
     quote.quoteStatus = QuoteStatus.CLOSED;
+    quote.fullyClosedAt = event.block.timestamp;
   } else {
     quote.quoteStatus = QuoteStatus.OPENED;
   }
@@ -258,9 +262,9 @@ function handleClose(_event: ethereum.Event, name: string): void {
   if (symbol == null) return;
 
   /* let tradingFee = event.params.filledAmount
-    .times(quote.openPrice!)
-    .times(symbol.tradingFee)
-    .div(BigInt.fromString("10").pow(36)); */
+      .times(quote.openPrice!)
+      .times(symbol.tradingFee)
+      .div(BigInt.fromString("10").pow(36)); */
 
   const dh = getDailyHistoryForTimestamp(
     event.block.timestamp,
@@ -329,13 +333,15 @@ function handleClose(_event: ethereum.Event, name: string): void {
   dsv.updateTimestamp = event.block.timestamp;
   dsv.save();
 
-  updateDailyOpenInterest(
-    quote.symbolId,
-    event.block.timestamp,
-    unDecimal(event.params.filledAmount.times(quote.openPrice!)),
-    false,
-    account.accountSource
-  );
+  if (quote.openPrice) {
+    updateDailyOpenInterest(
+      quote.symbolId,
+      event.block.timestamp,
+      unDecimal(event.params.filledAmount.times(quote.openPrice!)),
+      false,
+      account.accountSource
+    );
+  }
 }
 
 export function handleAllocatePartyA(event: AllocatePartyA): void {

@@ -6,13 +6,13 @@
     "build": "graph build",
     "test": "graph test",
     "prepare:base": "mustache ../configs/aggregated/base_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:base": "goldsky subgraph deploy intentx-base-analytics-083/0.0.2 --path .",
+    "deploy:base": "goldsky subgraph deploy intentx-base-analytics-083/0.0.3 --path .",
     "prepare:blast": "mustache ../configs/aggregated/blast_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:blast": "goldsky subgraph deploy intentx-blast-analytics-083/0.0.2 --path .",
+    "deploy:blast": "goldsky subgraph deploy intentx-blast-analytics-083/0.0.3 --path .",
     "prepare:thena": "mustache ../configs/aggregated/bsc_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:thena": "goldsky subgraph deploy intentx-bsc-analytics-083/0.0.1 --path .",
+    "deploy:thena": "goldsky subgraph deploy intentx-bsc-analytics-083/0.0.6 --path .",
     "prepare:mantle": "mustache ../configs/aggregated/mantle_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:mantle": "goldsky subgraph deploy intentx-mantle-analytics-083/0.0.2 --path ."
+    "deploy:mantle": "goldsky subgraph deploy intentx-mantle-analytics-083/0.0.3 --path ."
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.50.1",

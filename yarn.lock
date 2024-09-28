@@ -3,9 +3,9 @@
 
 
 "@0xgraph/cli@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.npmjs.org/@0xgraph/cli/-/cli-0.2.0.tgz"
-  integrity sha512-0a+onexKm683EQUTzN+zEaM7zDrX2Gebu6R6dhPnDP9KGz/C6UEGee0SyjKoz6baNOGrmTILqMknCe8a/qBA2Q==
+  version "0.2.1"
+  resolved "https://registry.npmjs.org/@0xgraph/cli/-/cli-0.2.1.tgz"
+  integrity sha512-TLBT74QQaeVQ4CyYfYxD4F8HOnJ6npHaofyp8QMym/vDuTvgA11QpTGkWTosL3XntIJbPE9eXOvQcEEbFKyWGA==
   dependencies:
     "@float-capital/float-subgraph-uncrashable" "^0.0.0-alpha.4"
     "@oclif/core" "2.8.6"

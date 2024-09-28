@@ -212,6 +212,20 @@ function handleClose(_event: ethereum.Event, name: string): void {
     quote.quoteStatus = QuoteStatus.OPENED;
   }
 
+  // Updating CVA & LFs
+  quote.cva = quote.cva.minus(
+    quote.cva.times(event.params.filledAmount).div(quote.quantity)
+  );
+  quote.lf = quote.lf.minus(
+    quote.lf.times(event.params.filledAmount).div(quote.quantity)
+  );
+  quote.partyAmm = quote.partyAmm.minus(
+    quote.partyAmm.times(event.params.filledAmount).div(quote.quantity)
+  );
+  quote.partyBmm = quote.partyBmm.minus(
+    quote.partyBmm.times(event.params.filledAmount).div(quote.quantity)
+  );
+
   quote.updateTimestamp = event.block.timestamp;
   quote.save();
 
@@ -718,10 +732,16 @@ export function handleSendQuote(event: SendQuote): void {
   quote.marketPrice = event.params.marketPrice;
   quote.deadline = event.params.deadline;
   quote.quantity = event.params.quantity;
+
+  quote.initialCVA = event.params.cva;
+  quote.initialPartyAMM = event.params.partyAmm;
+  quote.initialPartyBAMM = event.params.partyBmm;
+  quote.initialLF = event.params.lf;
   quote.cva = event.params.cva;
   quote.partyAmm = event.params.partyAmm;
   quote.partyBmm = event.params.partyBmm;
   quote.lf = event.params.lf;
+
   quote.quoteStatus = QuoteStatus.PENDING;
   quote.account = account.id;
   quote.closedAmount = BigInt.fromString("0");

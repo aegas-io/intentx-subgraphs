@@ -97,7 +97,6 @@ type Quote @entity {
   cva: BigInt!
   partyAmm: BigInt!
   partyBmm: BigInt!
-  lf: BigInt!
 
   quoteStatus: Int!
   blockNumber: BigInt!

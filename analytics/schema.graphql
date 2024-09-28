@@ -87,10 +87,18 @@ type Quote @entity {
   deadline: BigInt!
   partyBsWhiteList: [Bytes!]
   quantity: BigInt!
+
+  initialLF: BigInt!
+  initialCVA: BigInt!
+  initialPartyAMM: BigInt!
+  initialPartyBAMM: BigInt!
+
+  lf: BigInt!
   cva: BigInt!
   partyAmm: BigInt!
   partyBmm: BigInt!
   lf: BigInt!
+
   quoteStatus: Int!
   blockNumber: BigInt!
   closedAmount: BigInt!

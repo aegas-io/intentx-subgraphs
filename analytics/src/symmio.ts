@@ -986,6 +986,12 @@ export function handleOpenPosition(event: OpenPosition): void {
   quote.openPrice = event.params.openedPrice;
   quote.openPriceFundingRate = event.params.openedPrice;
   quote.paidFundingRate = BigInt.fromString("0");
+
+  quote.initialCVA = chainQuote.lockedValues.cva;
+  quote.initialLF = chainQuote.lockedValues.lf;
+  quote.initialPartyAMM = chainQuote.lockedValues.partyAmm;
+  quote.initialPartyBAMM = chainQuote.lockedValues.partyBmm;
+
   quote.cva = chainQuote.lockedValues.cva;
   quote.lf = chainQuote.lockedValues.lf;
   quote.partyAmm = chainQuote.lockedValues.partyAmm;

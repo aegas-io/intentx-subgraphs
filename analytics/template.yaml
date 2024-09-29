@@ -55,12 +55,6 @@ dataSources:
           handler: handleAcceptCancelCloseRequest
         - event: AcceptCancelRequest(uint256,uint8)
           handler: handleAcceptCancelRequest
-        - event: AllocateForPartyB(address,address,uint256)
-          handler: handleAllocateForPartyB
-        - event: AllocatePartyB(address,address,uint256)
-          handler: handleAllocatePartyB
-        - event: DeallocateForPartyB(address,address,uint256)
-          handler: handleDeallocateForPartyB
         - event: EmergencyClosePosition(uint256,address,address,uint256,uint256,uint8)
           handler: handleEmergencyClosePosition
         - event: FillCloseRequest(uint256,address,address,uint256,uint256,uint8)
@@ -147,10 +141,6 @@ dataSources:
           handler: handleLiquidatePositionsPartyA
         - event: LiquidatePositionsPartyB(address,address,address,uint256[])
           handler: handleLiquidatePositionsPartyB
-        - event: AllocatePartyA(address,uint256)
-          handler: handleAllocatePartyA
-        - event: DeallocatePartyA(address,uint256)
-          handler: handleDeallocatePartyA
         - event: Deposit(address,address,uint256)
           handler: handleDeposit
         - event: Withdraw(address,address,uint256)
@@ -165,6 +155,10 @@ dataSources:
           handler: handleRoleRevoked
         - event: ChargeFundingRate(address,address,uint256[],int256[])
           handler: handleChargeFundingRate
+        - event: BalanceChangePartyA(indexed address,uint256,uint8)
+          handler: handleBalanceChangePartyA
+        - event: BalanceChangePartyB(indexed address,indexed address,uint256,uint8)
+          handler: handleBalanceChangePartyB
       file: ./src/symmio.ts
 
   - kind: ethereum

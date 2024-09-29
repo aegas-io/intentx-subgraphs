@@ -4,13 +4,10 @@ import {
   AcceptCancelRequest,
   ActiveEmergencyMode,
   AddSymbol,
-  AllocateForPartyB,
-  AllocatePartyA,
-  AllocatePartyB,
+  BalanceChangePartyA,
+  BalanceChangePartyB,
   ChargeFundingRate,
   DeactiveEmergencyMode,
-  DeallocateForPartyB,
-  DeallocatePartyA,
   Deposit,
   DiamondCut,
   DisputeForLiquidation,
@@ -125,6 +122,19 @@ export enum QuoteStatus {
   CLOSED,
   LIQUIDATED,
   EXPIRED,
+}
+
+export enum BalanceChangeType {
+  ALLOCATE,
+  DEALLOCATE,
+  PLATFORM_FEE_IN,
+  PLATFORM_FEE_OUT,
+  REALIZED_PNL_IN,
+  REALIZED_PNL_OUT,
+  CVA_IN,
+  CVA_OUT,
+  LF_IN,
+  LF_OUT,
 }
 
 // //////////////////////////////////// CONTROL ////////////////////////////////////////
@@ -358,148 +368,6 @@ function handleClose(_event: ethereum.Event, name: string): void {
   }
 }
 
-export function handleAllocatePartyA(event: AllocatePartyA): void {
-  let account = AccountModel.load(event.params.user.toHexString());
-  if (!account) {
-    const user = createNewUser(
-      event.params.user,
-      null,
-      event.block,
-      event.transaction
-    );
-    account = createNewAccount(
-      event.params.user.toHexString(),
-      user,
-      null,
-      event.block,
-      event.transaction
-    );
-  }
-  account.allocated = account.allocated.plus(event.params.amount);
-  account.updateTimestamp = event.block.timestamp;
-  account.save();
-
-  updateActivityTimestamps(account, event.block.timestamp);
-
-  let allocate = new BalanceChange(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toHexString()
-  );
-  allocate.type = "ALLOCATE_PARTY_A";
-  allocate.timestamp = event.block.timestamp;
-  allocate.blockNumber = event.block.number;
-  allocate.transaction = event.transaction.hash;
-  allocate.amount = event.params.amount;
-  allocate.account = account.id;
-  allocate.collateral = getConfiguration(event).collateral;
-  allocate.save();
-
-  let user = User.load(account.user);
-  if (!user) {
-    user = createNewUser(
-      event.params.user,
-      account.accountSource,
-      event.block,
-      event.transaction
-    );
-  }
-  user.allocated = user.allocated.plus(event.params.amount);
-  user.save();
-
-  const dh = getDailyHistoryForTimestamp(
-    event.block.timestamp,
-    account.accountSource
-  );
-  dh.allocate = dh.allocate.plus(allocate.amount);
-  dh.updateTimestamp = event.block.timestamp;
-  dh.save();
-
-  const udh = getUserDailyHistoryForTimestamp(
-    event.block.timestamp,
-    account.accountSource,
-    account.user
-  );
-  udh.allocate = udh.allocate.plus(allocate.amount);
-  udh.updateTimestamp = event.block.timestamp;
-  udh.save();
-
-  const th = getTotalHistory(event.block.timestamp, account.accountSource);
-  th.allocate = th.allocate.plus(allocate.amount);
-  th.updateTimestamp = event.block.timestamp;
-  th.save();
-
-  const uth = getUserTotalHistory(
-    event.block.timestamp,
-    account.accountSource,
-    account.user
-  );
-  uth.allocate = uth.allocate.plus(allocate.amount);
-  uth.updateTimestamp = event.block.timestamp;
-  uth.save();
-}
-
-export function handleDeallocatePartyA(event: DeallocatePartyA): void {
-  let account = AccountModel.load(event.params.user.toHexString());
-  if (account == null) return;
-  account.deallocated = account.deallocated.plus(event.params.amount);
-  account.updateTimestamp = event.block.timestamp;
-  account.save();
-  updateActivityTimestamps(account, event.block.timestamp);
-  let deallocate = new BalanceChange(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toHexString()
-  );
-  deallocate.type = "DEALLOCATE_PARTY_A";
-  deallocate.timestamp = event.block.timestamp;
-  deallocate.blockNumber = event.block.number;
-  deallocate.transaction = event.transaction.hash;
-  deallocate.amount = event.params.amount;
-  deallocate.account = account.id;
-  deallocate.collateral = getConfiguration(event).collateral;
-  deallocate.save();
-
-  let user = User.load(account.user);
-  if (!user) {
-    user = createNewUser(
-      event.params.user,
-      account.accountSource,
-      event.block,
-      event.transaction
-    );
-  }
-  user.deallocated = user.deallocated.plus(event.params.amount);
-  user.save();
-
-  const dh = getDailyHistoryForTimestamp(
-    event.block.timestamp,
-    account.accountSource
-  );
-  dh.deallocate = dh.deallocate.plus(deallocate.amount);
-  dh.updateTimestamp = event.block.timestamp;
-  dh.save();
-
-  const udh = getUserDailyHistoryForTimestamp(
-    event.block.timestamp,
-    account.accountSource,
-    account.user
-  );
-  udh.deallocate = udh.deallocate.plus(deallocate.amount);
-  udh.updateTimestamp = event.block.timestamp;
-  udh.save();
-
-  const th = getTotalHistory(event.block.timestamp, account.accountSource);
-  th.deallocate = th.deallocate.plus(deallocate.amount);
-  th.updateTimestamp = event.block.timestamp;
-  th.save();
-
-  const uth = getUserTotalHistory(
-    event.block.timestamp,
-    account.accountSource,
-    account.user
-  );
-  uth.deallocate = uth.deallocate.plus(deallocate.amount);
-  uth.updateTimestamp = event.block.timestamp;
-  uth.save();
-}
-
 export function handleDeposit(event: Deposit): void {
   let account = AccountModel.load(event.params.user.toHexString());
   if (account == null) {
@@ -629,69 +497,6 @@ export function handleWithdraw(event: Withdraw): void {
   uth.withdraw = uth.withdraw.plus(withdraw.amount);
   uth.updateTimestamp = event.block.timestamp;
   uth.save();
-}
-
-export function handleAllocateForPartyB(event: AllocateForPartyB): void {
-  let account = AccountModel.load(event.params.partyB.toHexString())!;
-  account.allocated = account.allocated.plus(event.params.amount);
-  account.updateTimestamp = event.block.timestamp;
-  account.save();
-
-  let user: User | null = User.load(account.user);
-  if (!user) {
-    user = createNewUser(
-      event.params.partyB,
-      account.accountSource,
-      event.block,
-      event.transaction
-    );
-  }
-
-  user.allocated = user.allocated.plus(event.params.amount);
-  user.lastActivityTimestamp = event.block.timestamp;
-  user.save();
-}
-
-export function handleAllocatePartyB(event: AllocatePartyB): void {
-  let account = AccountModel.load(event.params.partyB.toHexString())!;
-  account.allocated = account.allocated.plus(event.params.amount);
-  account.updateTimestamp = event.block.timestamp;
-  account.save();
-
-  let user: User | null = User.load(account.user);
-  if (!user) {
-    user = createNewUser(
-      event.params.partyB,
-      account.accountSource,
-      event.block,
-      event.transaction
-    );
-  }
-
-  user.allocated = user.allocated.plus(event.params.amount);
-  user.lastActivityTimestamp = event.block.timestamp;
-  user.save();
-}
-
-export function handleDeallocateForPartyB(event: DeallocateForPartyB): void {
-  let account = AccountModel.load(event.params.partyB.toHexString())!;
-  account.deallocated = account.deallocated.plus(event.params.amount);
-  account.updateTimestamp = event.block.timestamp;
-  account.save();
-
-  let user: User | null = User.load(account.user);
-  if (!user) {
-    user = createNewUser(
-      event.params.partyB,
-      account.accountSource,
-      event.block,
-      event.transaction
-    );
-  }
-
-  user.deallocated = user.deallocated.plus(event.params.amount);
-  user.lastActivityTimestamp = event.block.timestamp;
-  user.save();
 }
 
 export function handleSendQuote(event: SendQuote): void {
@@ -1702,3 +1507,32 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
     }
   }
 }
+
+export function handleBalanceChangePartyA(event: BalanceChangePartyA): void {
+  let account = AccountModel.load(event.params.partyA.toHexString())!;
+
+  if (account == null) {
+    return;
+  }
+
+  if (event.params._type == BalanceChangeType.ALLOCATE) {
+    account.allocatedBalance = account.allocatedBalance.plus(
+      event.params.amount
+    );
+  } else if (event.params._type == BalanceChangeType.DEALLOCATE) {
+    account.allocatedBalance = account.allocatedBalance.minus(
+      event.params.amount
+    );
+  } else if (event.params._type == BalanceChangeType.REALIZED_PNL_IN) {
+    account.allocatedBalance = account.allocatedBalance.plus(
+      event.params.amount
+    );
+  } else if (event.params._type == BalanceChangeType.REALIZED_PNL_OUT) {
+    account.allocatedBalance = account.allocatedBalance.minus(
+      event.params.amount
+    );
+  }
+  account.save();
+}
+
+export function handleBalanceChangePartyB(event: BalanceChangePartyB): void {}

@@ -413,7 +413,7 @@ export function getSolverDailyHistoryForTimestamp(
   solver: Solver,
   timestamp: BigInt,
   accountSource: Bytes
-) {
+): SolverDailyHistory {
   const dateStr = getDateFromTimeStamp(timestamp).getTime().toString();
 
   const id =
@@ -444,7 +444,7 @@ export function getSolverTotalHistory(
   solver: Solver,
   timestamp: BigInt,
   accountSource: Bytes
-) {
+): SolverTotalHistory {
   const id = solver.id;
   const sth = SolverTotalHistory.load(id);
   if (sth == null) {
@@ -521,6 +521,18 @@ export function createNewAccount(
   account.updateTimestamp = block.timestamp;
   account.accountSource = accountSource;
   account.name = name;
+
+  account.allocatedBalance = BigInt.zero();
+  account.lockedCVA = BigInt.zero();
+  account.lockedLF = BigInt.zero();
+  account.lockedPartyAmm = BigInt.zero();
+  account.lockedPartyBmm = BigInt.zero();
+
+  account.pendingCVA = BigInt.zero();
+  account.pendingLF = BigInt.zero();
+  account.pendingPartyAmm = BigInt.zero();
+  account.pendingPartyBmm = BigInt.zero();
+
   account.save();
   const dh = getDailyHistoryForTimestamp(block.timestamp, accountSource);
   dh.newAccounts = dh.newAccounts.plus(BigInt.fromString("1"));

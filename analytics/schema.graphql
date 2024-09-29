@@ -41,14 +41,25 @@ type Account @entity {
   quotesCount: BigInt!
   positionsCount: BigInt!
   lastActivityTimestamp: BigInt!
-  deposit: BigInt!
-  withdraw: BigInt!
   allocated: BigInt!
   deallocated: BigInt!
+  deposit: BigInt!
+  withdraw: BigInt!
   transaction: Bytes!
   updateTimestamp: BigInt!
   accountSource: Bytes
   paidFundingFeeHistory: [PaidFundingFee!]! @derivedFrom(field: "account")
+
+  allocatedBalance: BigInt!
+  lockedCVA: BigInt!
+  lockedLF: BigInt!
+  lockedPartyAmm: BigInt!
+  lockedPartyBmm: BigInt!
+
+  pendingCVA: BigInt!
+  pendingLF: BigInt!
+  pendingPartyAmm: BigInt!
+  pendingPartyBmm: BigInt!
 }
 
 type BalanceChange @entity {
@@ -407,13 +418,12 @@ type Solver @entity {
 type SolverDailyHistory @entity {
   id: ID!
   solver: Solver!
-  accountSource: Bytes!
+  accountSource: Bytes
   quotesCount: BigInt!
   tradeVolume: BigInt!
   openTradeVolume: BigInt!
   closeTradeVolume: BigInt!
   generatedFee: BigInt!
-  accountSource: Bytes
   updateTimestamp: BigInt!
   timestamp: BigInt!
 }
@@ -421,13 +431,12 @@ type SolverDailyHistory @entity {
 type SolverTotalHistory @entity {
   id: ID!
   solver: Solver!
-  accountSource: Bytes!
+  accountSource: Bytes
   quotesCount: BigInt!
   tradeVolume: BigInt!
   openTradeVolume: BigInt!
   closeTradeVolume: BigInt!
   generatedFee: BigInt!
-  accountSource: Bytes
   updateTimestamp: BigInt!
   timestamp: BigInt!
 }

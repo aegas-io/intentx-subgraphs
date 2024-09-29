@@ -282,6 +282,21 @@ function handleClose(_event: ethereum.Event, name: string): void {
 
   let account = AccountModel.load(event.params.partyA.toHexString())!;
 
+  // Updating the account locked parameters
+  account.lockedCVA = account.lockedCVA.minus(
+    quote.cva.times(event.params.filledAmount).div(quote.quantity)
+  );
+  account.lockedLF = account.lockedLF.minus(
+    quote.lf.times(event.params.filledAmount).div(quote.quantity)
+  );
+  account.lockedPartyAmm = account.lockedPartyAmm.minus(
+    quote.partyAmm.times(event.params.filledAmount).div(quote.quantity)
+  );
+  account.lockedPartyBmm = account.lockedPartyBmm.minus(
+    quote.partyBmm.times(event.params.filledAmount).div(quote.quantity)
+  );
+  account.save();
+
   const symbol = Symbol.load(quote.symbolId.toString());
   if (symbol == null) return;
 
@@ -558,6 +573,12 @@ export function handleSendQuote(event: SendQuote): void {
   quote.requestOpenTransaction = event.transaction.hash;
   quote.save();
 
+  // Updating the account pending locked parameters
+  account.pendingCVA = account.pendingCVA.plus(quote.cva);
+  account.pendingLF = account.pendingLF.plus(quote.lf);
+  account.pendingPartyAmm = account.pendingPartyAmm.plus(quote.partyAmm);
+  account.pendingPartyBmm = account.pendingPartyBmm.plus(quote.partyBmm);
+
   const dh = getDailyHistoryForTimestamp(
     event.block.timestamp,
     account.accountSource
@@ -687,6 +708,14 @@ export function handleForceCancelQuote(event: ForceCancelQuote): void {
   quote.forceCancelAt = event.block.timestamp;
   quote.forceCancelTransaction = event.transaction.hash;
   quote.save();
+
+  // Updating the account locked parameters
+  let account = AccountModel.load(quote.account)!;
+  account.pendingCVA = account.lockedCVA.minus(quote.cva);
+  account.pendingLF = account.lockedLF.minus(quote.lf);
+  account.pendingPartyAmm = account.lockedPartyAmm.minus(quote.partyAmm);
+  account.pendingPartyBmm = account.lockedPartyBmm.minus(quote.partyBmm);
+  account.save();
 }
 
 export function handleRequestToClosePosition(
@@ -725,6 +754,14 @@ export function handleAcceptCancelRequest(event: AcceptCancelRequest): void {
   quote.cancelAt = event.block.timestamp;
   quote.cancelTransaction = event.transaction.hash;
   quote.save();
+
+  // Updating the account locked parameters
+  let account = AccountModel.load(quote.account)!;
+  account.pendingCVA = account.pendingCVA.minus(quote.cva);
+  account.pendingLF = account.pendingLF.minus(quote.lf);
+  account.pendingPartyAmm = account.pendingPartyAmm.minus(quote.partyAmm);
+  account.pendingPartyBmm = account.pendingPartyBmm.minus(quote.partyBmm);
+  account.save();
 }
 
 export function handleRequestToCancelCloseRequest(
@@ -849,6 +886,20 @@ export function handleOpenPosition(event: OpenPosition): void {
       event.transaction
     );
   }
+
+  // Updating the account pending locked parameters
+  account.pendingCVA = account.pendingCVA.minus(quote.cva);
+  account.pendingLF = account.pendingLF.minus(quote.lf);
+  account.pendingPartyAmm = account.pendingPartyAmm.minus(quote.partyAmm);
+  account.pendingPartyBmm = account.pendingPartyBmm.minus(quote.partyBmm);
+
+  // Updating the account locked parameters
+  account.lockedCVA = account.lockedCVA.plus(quote.cva);
+  account.lockedLF = account.lockedLF.plus(quote.lf);
+  account.lockedPartyAmm = account.lockedPartyAmm.plus(quote.partyAmm);
+  account.lockedPartyBmm = account.lockedPartyBmm.plus(quote.partyBmm);
+
+  account.save();
 
   // Updating totalTradeCountAnalytics if user is not null and position is 100% filled
 
@@ -1532,6 +1583,7 @@ export function handleBalanceChangePartyA(event: BalanceChangePartyA): void {
       event.params.amount
     );
   }
+
   account.save();
 }
 

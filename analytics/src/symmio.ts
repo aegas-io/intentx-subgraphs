@@ -1560,7 +1560,7 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
 }
 
 export function handleBalanceChangePartyA(event: BalanceChangePartyA): void {
-  let account = AccountModel.load(event.params.partyA.toHexString())!;
+  let account = AccountModel.load(event.params.partyA.toHexString());
 
   if (account == null) {
     return;

@@ -3293,9 +3293,6 @@ restore-cursor@^3.1.0:
     onetime "^5.1.0"
     signal-exit "^3.0.2"
 
-"result-quote@file:/Users/pabloherrero/Documents/Programacion/IntentX/intentx-subgraphs/main":
-  resolved "file:main"
-
 retimer@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/retimer/-/retimer-3.0.0.tgz"

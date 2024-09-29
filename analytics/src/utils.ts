@@ -9,6 +9,8 @@ import {
   Quote,
   QuoteClose,
   Solver,
+  SolverDailyHistory,
+  SolverTotalHistory,
   Symbol,
   SymbolDailyTradeVolume,
   SymbolTradeVolume,
@@ -405,6 +407,60 @@ export function getSolver(address: string): Solver {
     solver.save();
   }
   return solver;
+}
+
+export function getSolverDailyHistoryForTimestamp(
+  solver: Solver,
+  timestamp: BigInt,
+  accountSource: Bytes
+) {
+  const dateStr = getDateFromTimeStamp(timestamp).getTime().toString();
+
+  const id =
+    solver +
+    "_" +
+    dateStr +
+    "_" +
+    (accountSource === null ? "null" : accountSource.toHexString());
+  const sdh = SolverDailyHistory.load(id);
+  if (sdh == null) {
+    const newSdh = new SolverDailyHistory(id);
+    newSdh.solver = solver.id;
+    newSdh.timestamp = timestamp;
+    newSdh.accountSource = accountSource;
+    newSdh.quotesCount = BigInt.zero();
+    newSdh.tradeVolume = BigInt.zero();
+    newSdh.openTradeVolume = BigInt.zero();
+    newSdh.closeTradeVolume = BigInt.zero();
+    newSdh.generatedFee = BigInt.zero();
+    newSdh.updateTimestamp = timestamp;
+    newSdh.save();
+    return newSdh;
+  }
+  return sdh;
+}
+
+export function getSolverTotalHistory(
+  solver: Solver,
+  timestamp: BigInt,
+  accountSource: Bytes
+) {
+  const id = solver.id;
+  const sth = SolverTotalHistory.load(id);
+  if (sth == null) {
+    const newSth = new SolverTotalHistory(id);
+    newSth.solver = solver.id;
+    newSth.timestamp = timestamp;
+    newSth.accountSource = accountSource;
+    newSth.quotesCount = BigInt.zero();
+    newSth.tradeVolume = BigInt.zero();
+    newSth.openTradeVolume = BigInt.zero();
+    newSth.closeTradeVolume = BigInt.zero();
+    newSth.generatedFee = BigInt.zero();
+    newSth.updateTimestamp = timestamp;
+    return newSth;
+  }
+  return sth;
 }
 
 export function createNewUser(

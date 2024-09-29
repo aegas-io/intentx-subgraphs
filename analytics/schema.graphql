@@ -404,6 +404,34 @@ type Solver @entity {
     @derivedFrom(field: "solver")
 }
 
+type SolverDailyHistory @entity {
+  id: ID!
+  solver: Solver!
+  accountSource: Bytes!
+  quotesCount: BigInt!
+  tradeVolume: BigInt!
+  openTradeVolume: BigInt!
+  closeTradeVolume: BigInt!
+  generatedFee: BigInt!
+  accountSource: Bytes
+  updateTimestamp: BigInt!
+  timestamp: BigInt!
+}
+
+type SolverTotalHistory @entity {
+  id: ID!
+  solver: Solver!
+  accountSource: Bytes!
+  quotesCount: BigInt!
+  tradeVolume: BigInt!
+  openTradeVolume: BigInt!
+  closeTradeVolume: BigInt!
+  generatedFee: BigInt!
+  accountSource: Bytes
+  updateTimestamp: BigInt!
+  timestamp: BigInt!
+}
+
 type HourlySymbolFundingRateAverage @entity {
   id: ID!
   symbol: Symbol!

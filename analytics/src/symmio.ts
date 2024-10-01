@@ -1,4 +1,4 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
   AcceptCancelCloseRequest,
   AcceptCancelRequest,
@@ -522,7 +522,7 @@ export function handleSendQuote(event: SendQuote): void {
   let user = User.load(account.user);
   if (!user) {
     user = createNewUser(
-      event.params.partyA,
+      Address.fromString(account.user),
       account.accountSource,
       event.block,
       event.transaction
@@ -880,7 +880,7 @@ export function handleOpenPosition(event: OpenPosition): void {
 
   if (!user) {
     user = createNewUser(
-      event.params.partyA,
+      Address.fromString(account.user),
       account.accountSource,
       event.block,
       event.transaction

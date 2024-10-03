@@ -1,0 +1,14 @@
+{
+  "network": "arbitrum-one",
+  "symmioAddress": "0x8F06459f184553e5d04F07F868720BDaCAB39395",
+  "symmioStartBlock": "210771536",
+  "symmioVersion": "0.8.3",
+  "multiAccounts": [
+    {
+      "symmioMultiAccountAddress": "0x141269E29a770644C34e05B127AB621511f20109",
+      "symmioMultiAccountStartBlock": "259657700",
+      "symmioMultiAccountName": "MultiAccountIntentX"
+    }
+  ],
+  "analyticsDeployUrl": "intent-x/arbitrum"
+}

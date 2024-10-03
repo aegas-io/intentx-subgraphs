@@ -223,16 +223,16 @@ function handleClose(_event: ethereum.Event, name: string): void {
   }
 
   // Updating CVA & LFs
-  quote.cva = quote.cva.minus(
+  quote.remainingCVA = quote.remainingCVA.minus(
     quote.cva.times(event.params.filledAmount).div(quote.quantity)
   );
-  quote.lf = quote.lf.minus(
+  quote.remainingLF = quote.remainingLF.minus(
     quote.lf.times(event.params.filledAmount).div(quote.quantity)
   );
-  quote.partyAmm = quote.partyAmm.minus(
+  quote.remainingPartyAMM = quote.remainingPartyAMM.minus(
     quote.partyAmm.times(event.params.filledAmount).div(quote.quantity)
   );
-  quote.partyBmm = quote.partyBmm.minus(
+  quote.remainingPartyBAMM = quote.remainingPartyBAMM.minus(
     quote.partyBmm.times(event.params.filledAmount).div(quote.quantity)
   );
 
@@ -553,10 +553,11 @@ export function handleSendQuote(event: SendQuote): void {
   quote.deadline = event.params.deadline;
   quote.quantity = event.params.quantity;
 
-  quote.initialCVA = event.params.cva;
-  quote.initialPartyAMM = event.params.partyAmm;
-  quote.initialPartyBAMM = event.params.partyBmm;
-  quote.initialLF = event.params.lf;
+  quote.remainingCVA = event.params.cva;
+  quote.remainingPartyAMM = event.params.partyAmm;
+  quote.remainingPartyBAMM = event.params.partyBmm;
+  quote.remainingLF = event.params.lf;
+
   quote.cva = event.params.cva;
   quote.partyAmm = event.params.partyAmm;
   quote.partyBmm = event.params.partyBmm;
@@ -849,11 +850,10 @@ export function handleOpenPosition(event: OpenPosition): void {
   quote.openPriceFundingRate = event.params.openedPrice;
   quote.paidFundingRate = BigInt.fromString("0");
 
-  quote.initialCVA = chainQuote.lockedValues.cva;
-  quote.initialLF = chainQuote.lockedValues.lf;
-  quote.initialPartyAMM = chainQuote.lockedValues.partyAmm;
-  quote.initialPartyBAMM = chainQuote.lockedValues.partyBmm;
-
+  quote.remainingCVA = chainQuote.lockedValues.cva;
+  quote.remainingLF = chainQuote.lockedValues.lf;
+  quote.remainingPartyAMM = chainQuote.lockedValues.partyAmm;
+  quote.remainingPartyBAMM = chainQuote.lockedValues.partyBmm;
   quote.cva = chainQuote.lockedValues.cva;
   quote.lf = chainQuote.lockedValues.lf;
   quote.partyAmm = chainQuote.lockedValues.partyAmm;

@@ -99,10 +99,10 @@ type Quote @entity {
   partyBsWhiteList: [Bytes!]
   quantity: BigInt!
 
-  initialLF: BigInt!
-  initialCVA: BigInt!
-  initialPartyAMM: BigInt!
-  initialPartyBAMM: BigInt!
+  remainingLF: BigInt!
+  remainingCVA: BigInt!
+  remainingPartyAMM: BigInt!
+  remainingPartyBAMM: BigInt!
 
   lf: BigInt!
   cva: BigInt!

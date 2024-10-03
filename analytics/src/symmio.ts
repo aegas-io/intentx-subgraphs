@@ -107,6 +107,7 @@ import {
   unDecimal,
   updateActivityTimestamps,
   updateDailyOpenInterest,
+  updatePartyACurrentBalances,
 } from "./utils";
 
 import { ethereum } from "@graphprotocol/graph-ts/chain/ethereum";
@@ -296,6 +297,9 @@ function handleClose(_event: ethereum.Event, name: string): void {
     quote.partyBmm.times(event.params.filledAmount).div(quote.quantity)
   );
   account.save();
+
+  // Updating account allocated balances
+  updatePartyACurrentBalances(event.address, event.params.partyA);
 
   const symbol = Symbol.load(quote.symbolId.toString());
   if (symbol == null) return;
@@ -629,6 +633,10 @@ export function handleExpireQuote(event: ExpireQuote): void {
   quote.expiredAt = event.block.timestamp;
   quote.expiredTransaction = event.transaction.hash;
   quote.save();
+
+  // Updating the account locked parameters
+
+  updatePartyACurrentBalances(event.address, Address.fromString(quote.account));
 }
 
 export function handleRequestToCancelQuote(event: RequestToCancelQuote): void {
@@ -717,6 +725,9 @@ export function handleForceCancelQuote(event: ForceCancelQuote): void {
   account.pendingPartyAmm = account.lockedPartyAmm.minus(quote.partyAmm);
   account.pendingPartyBmm = account.lockedPartyBmm.minus(quote.partyBmm);
   account.save();
+
+  // Updating account allocated balances
+  updatePartyACurrentBalances(event.address, Address.fromString(quote.account));
 }
 
 export function handleRequestToClosePosition(
@@ -900,6 +911,9 @@ export function handleOpenPosition(event: OpenPosition): void {
   account.lockedPartyBmm = account.lockedPartyBmm.plus(quote.partyBmm);
 
   account.save();
+
+  // Updating the account allocated balances
+  updatePartyACurrentBalances(event.address, event.params.partyA);
 
   // Updating totalTradeCountAnalytics if user is not null and position is 100% filled
 

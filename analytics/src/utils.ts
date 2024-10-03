@@ -1,4 +1,4 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import {
   Account,
   Account as AccountModel,
@@ -23,6 +23,7 @@ import {
 } from "../generated/schema";
 
 import { ethereum } from "@graphprotocol/graph-ts/chain/ethereum";
+import { getBalanceInfoOfPartyA } from "./contract_utils";
 
 export function getDateFromTimeStamp(timestamp: BigInt): Date {
   let date = new Date(timestamp.toI64() * 1000);
@@ -589,4 +590,58 @@ export function getQuoteClose(quote: Quote): QuoteClose | null {
   const quoteClose = QuoteClose.load(quote.id + "-" + closeCount.toString());
 
   return quoteClose;
+}
+
+export function updatePartyACurrentBalances(
+  address: Address,
+  partyAAdress: Address
+) {
+  const partyABalances = getBalanceInfoOfPartyA(address, partyAAdress);
+
+  const account = AccountModel.load(partyAAdress.toHexString());
+
+  if (account === null) {
+    return;
+  }
+
+  const allocatedBalance = partyABalances?.getValue0();
+  const lockedCVA = partyABalances?.getValue1();
+  const lockedLF = partyABalances?.getValue2();
+  const lockedPartyAmm = partyABalances?.getValue3();
+  const lockedPartyBmm = partyABalances?.getValue4();
+  const pendingCVA = partyABalances?.getValue5();
+  const pendingLF = partyABalances?.getValue6();
+  const pendingPartyAmm = partyABalances?.getValue7();
+  const pendingPartyBmm = partyABalances?.getValue8();
+
+  // Update account
+  if (allocatedBalance !== undefined) {
+    account.allocatedBalance = allocatedBalance;
+  }
+  if (lockedCVA !== undefined) {
+    account.lockedCVA = lockedCVA;
+  }
+  if (lockedLF !== undefined) {
+    account.lockedLF = lockedLF;
+  }
+  if (lockedPartyAmm !== undefined) {
+    account.lockedPartyAmm = lockedPartyAmm;
+  }
+  if (lockedPartyBmm !== undefined) {
+    account.lockedPartyBmm = lockedPartyBmm;
+  }
+  if (pendingCVA !== undefined) {
+    account.pendingCVA = pendingCVA;
+  }
+  if (pendingLF !== undefined) {
+    account.pendingLF = pendingLF;
+  }
+  if (pendingPartyAmm !== undefined) {
+    account.pendingPartyAmm = pendingPartyAmm;
+  }
+  if (pendingPartyBmm !== undefined) {
+    account.pendingPartyBmm = pendingPartyBmm;
+  }
+
+  return account.save();
 }

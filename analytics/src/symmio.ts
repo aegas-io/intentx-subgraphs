@@ -719,12 +719,12 @@ export function handleForceCancelQuote(event: ForceCancelQuote): void {
   quote.save();
 
   // Updating the account locked parameters
-  let account = AccountModel.load(quote.account)!;
+  /* let account = AccountModel.load(quote.account)!;
   account.pendingCVA = account.lockedCVA.minus(quote.cva);
   account.pendingLF = account.lockedLF.minus(quote.lf);
   account.pendingPartyAmm = account.lockedPartyAmm.minus(quote.partyAmm);
   account.pendingPartyBmm = account.lockedPartyBmm.minus(quote.partyBmm);
-  account.save();
+  account.save(); */
 
   // Updating account allocated balances
   updatePartyACurrentBalances(event.address, Address.fromString(quote.account));
@@ -768,12 +768,16 @@ export function handleAcceptCancelRequest(event: AcceptCancelRequest): void {
   quote.save();
 
   // Updating the account locked parameters
-  let account = AccountModel.load(quote.account)!;
+  /* let account = AccountModel.load(quote.account)!;
   account.pendingCVA = account.pendingCVA.minus(quote.cva);
   account.pendingLF = account.pendingLF.minus(quote.lf);
   account.pendingPartyAmm = account.pendingPartyAmm.minus(quote.partyAmm);
   account.pendingPartyBmm = account.pendingPartyBmm.minus(quote.partyBmm);
-  account.save();
+  account.save(); */
+  updatePartyACurrentBalances(
+    event.address,
+    Address.fromString(quote.account)
+  );
 }
 
 export function handleRequestToCancelCloseRequest(
@@ -899,7 +903,7 @@ export function handleOpenPosition(event: OpenPosition): void {
   }
 
   // Updating the account pending locked parameters
-  account.pendingCVA = account.pendingCVA.minus(quote.cva);
+  /* account.pendingCVA = account.pendingCVA.minus(quote.cva);
   account.pendingLF = account.pendingLF.minus(quote.lf);
   account.pendingPartyAmm = account.pendingPartyAmm.minus(quote.partyAmm);
   account.pendingPartyBmm = account.pendingPartyBmm.minus(quote.partyBmm);
@@ -908,7 +912,7 @@ export function handleOpenPosition(event: OpenPosition): void {
   account.lockedCVA = account.lockedCVA.plus(quote.cva);
   account.lockedLF = account.lockedLF.plus(quote.lf);
   account.lockedPartyAmm = account.lockedPartyAmm.plus(quote.partyAmm);
-  account.lockedPartyBmm = account.lockedPartyBmm.plus(quote.partyBmm);
+  account.lockedPartyBmm = account.lockedPartyBmm.plus(quote.partyBmm); */
 
   account.save();
 
@@ -1580,7 +1584,7 @@ export function handleBalanceChangePartyA(event: BalanceChangePartyA): void {
     return;
   }
 
-  if (event.params._type == BalanceChangeType.ALLOCATE) {
+  /* if (event.params._type == BalanceChangeType.ALLOCATE) {
     account.allocatedBalance = account.allocatedBalance.plus(
       event.params.amount
     );
@@ -1596,9 +1600,11 @@ export function handleBalanceChangePartyA(event: BalanceChangePartyA): void {
     account.allocatedBalance = account.allocatedBalance.minus(
       event.params.amount
     );
-  }
+  } 
 
-  account.save();
+  account.save();*/
+
+  updatePartyACurrentBalances(event.address, event.params.partyA);
 }
 
 export function handleBalanceChangePartyB(event: BalanceChangePartyB): void {}

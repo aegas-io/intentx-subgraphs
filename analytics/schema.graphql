@@ -50,16 +50,16 @@ type Account @entity {
   accountSource: Bytes
   paidFundingFeeHistory: [PaidFundingFee!]! @derivedFrom(field: "account")
 
-  allocatedBalance: BigInt!
-  lockedCVA: BigInt!
-  lockedLF: BigInt!
-  lockedPartyAmm: BigInt!
-  lockedPartyBmm: BigInt!
+  allocatedBalance: BigInt
+  lockedCVA: BigInt
+  lockedLF: BigInt
+  lockedPartyAmm: BigInt
+  lockedPartyBmm: BigInt
 
-  pendingCVA: BigInt!
-  pendingLF: BigInt!
-  pendingPartyAmm: BigInt!
-  pendingPartyBmm: BigInt!
+  pendingCVA: BigInt
+  pendingLF: BigInt
+  pendingPartyAmm: BigInt
+  pendingPartyBmm: BigInt
 }
 
 type BalanceChange @entity {

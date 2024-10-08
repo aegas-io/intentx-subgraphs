@@ -34,15 +34,9 @@ export function getDateFromTimeStamp(timestamp: BigInt): Date {
   return date;
 }
 
-export function getDailyHistoryForTimestamp(
-  timestamp: BigInt,
-  accountSource: Bytes | null
-): DailyHistory {
+export function getDailyHistoryForTimestamp(timestamp: BigInt, accountSource: Bytes | null): DailyHistory {
   const dateStr = getDateFromTimeStamp(timestamp).getTime().toString();
-  const id =
-    dateStr +
-    "_" +
-    (accountSource === null ? "null" : accountSource.toHexString());
+  const id = dateStr + "_" + (accountSource === null ? "null" : accountSource.toHexString());
   let dh = DailyHistory.load(id);
   if (dh == null) {
     dh = new DailyHistory(id);
@@ -107,12 +101,7 @@ export function getUserDailyHistoryForTimestamp(
   user: string
 ): UserDailyHistory {
   const dateStr = getDateFromTimeStamp(timestamp).getTime().toString();
-  const id =
-    user +
-    "_" +
-    (accountSource === null ? "null" : accountSource.toHexString()) +
-    "_" +
-    dateStr;
+  const id = user + "_" + (accountSource === null ? "null" : accountSource.toHexString()) + "_" + dateStr;
   let dh = UserDailyHistory.load(id);
   if (dh == null) {
     dh = new UserDailyHistory(id);
@@ -142,12 +131,7 @@ export function getSymbolDailyTradeVolume(
 ): SymbolDailyTradeVolume {
   const dateStr = getDateFromTimeStamp(timestamp).getTime().toString();
 
-  const id =
-    dateStr +
-    "_" +
-    (accountSource === null ? "null" : accountSource.toHexString()) +
-    "_" +
-    symbol.toString();
+  const id = dateStr + "_" + (accountSource === null ? "null" : accountSource.toHexString()) + "_" + symbol.toString();
   let sdh = SymbolDailyTradeVolume.load(id);
   if (sdh == null) {
     sdh = new SymbolDailyTradeVolume(id);
@@ -161,10 +145,7 @@ export function getSymbolDailyTradeVolume(
   return sdh;
 }
 
-export function getTotalHistory(
-  timestamp: BigInt,
-  accountSource: Bytes | null
-): TotalHistory {
+export function getTotalHistory(timestamp: BigInt, accountSource: Bytes | null): TotalHistory {
   const id = accountSource === null ? "null" : accountSource.toHexString();
   let th = TotalHistory.load(id);
   if (th == null) {
@@ -188,15 +169,8 @@ export function getTotalHistory(
   return th;
 }
 
-export function getUserTotalHistory(
-  timestamp: BigInt,
-  accountSource: Bytes | null,
-  user: string
-): UserTotalHistory {
-  const id =
-    user +
-    "_" +
-    (accountSource === null ? "null" : accountSource.toHexString());
+export function getUserTotalHistory(timestamp: BigInt, accountSource: Bytes | null, user: string): UserTotalHistory {
+  const id = user + "_" + (accountSource === null ? "null" : accountSource.toHexString());
   let th = UserTotalHistory.load(id);
   if (th == null) {
     th = new UserTotalHistory(id);
@@ -224,10 +198,7 @@ export function getSymbolTradeVolume(
   timestamp: BigInt,
   accountSource: Bytes | null
 ): SymbolTradeVolume {
-  const id =
-    symbol.toString() +
-    "_" +
-    (accountSource === null ? "null" : accountSource.toHexString());
+  const id = symbol.toString() + "_" + (accountSource === null ? "null" : accountSource.toHexString());
   let stv = SymbolTradeVolume.load(id);
   if (stv == null) {
     stv = new SymbolTradeVolume(id);
@@ -242,13 +213,8 @@ export function getSymbolTradeVolume(
   return stv;
 }
 
-export function getOpenInterest(
-  timestamp: BigInt,
-  accountSource: Bytes | null
-): OpenInterest {
-  const id =
-    "OpenInterestId_" +
-    (accountSource === null ? "null" : accountSource.toHexString());
+export function getOpenInterest(timestamp: BigInt, accountSource: Bytes | null): OpenInterest {
+  const id = "OpenInterestId_" + (accountSource === null ? "null" : accountSource.toHexString());
   let oi = OpenInterest.load(id);
   if (oi == null) {
     oi = new OpenInterest(id);
@@ -261,15 +227,8 @@ export function getOpenInterest(
   return oi;
 }
 
-export function getOpenInterestForSymbol(
-  timestamp: BigInt,
-  accountSource: Bytes | null,
-  symbol: BigInt
-): OpenInterest {
-  const id =
-    symbol.toString() +
-    "_OpenInterestId_" +
-    (accountSource === null ? "null" : accountSource.toHexString());
+export function getOpenInterestForSymbol(timestamp: BigInt, accountSource: Bytes | null, symbol: BigInt): OpenInterest {
+  const id = symbol.toString() + "_OpenInterestId_" + (accountSource === null ? "null" : accountSource.toHexString());
   let oi = OpenInterest.load(id);
   if (oi == null) {
     oi = new OpenInterest(id);
@@ -284,10 +243,7 @@ export function getOpenInterestForSymbol(
 }
 
 export function isSameDay(timestamp1: BigInt, timestamp2: BigInt): boolean {
-  return (
-    getDateFromTimeStamp(timestamp1).getTime().toString() ==
-    getDateFromTimeStamp(timestamp2).getTime().toString()
-  );
+  return getDateFromTimeStamp(timestamp1).getTime().toString() == getDateFromTimeStamp(timestamp2).getTime().toString();
 }
 
 export function unDecimal(value: BigInt): BigInt {
@@ -307,44 +263,25 @@ export function updateDailyOpenInterest(
 ): void {
   let oi = getOpenInterest(blockTimestamp, accountSource);
   let dh = getDailyHistoryForTimestamp(blockTimestamp, accountSource);
-  let oiForSymbol = getOpenInterestForSymbol(
-    blockTimestamp,
-    accountSource,
-    symbolId
-  );
+  let oiForSymbol = getOpenInterestForSymbol(blockTimestamp, accountSource, symbolId);
 
-  const startOfDay = BigInt.fromString(
-    (getDateFromTimeStamp(blockTimestamp).getTime() / 1000).toString()
-  );
+  const startOfDay = BigInt.fromString((getDateFromTimeStamp(blockTimestamp).getTime() / 1000).toString());
 
   if (isSameDay(blockTimestamp, oi.timestamp)) {
-    oi.accumulatedAmount = oi.accumulatedAmount.plus(
-      diffInSeconds(blockTimestamp, oi.timestamp).times(oi.amount)
-    );
-    dh.openInterest = oi.accumulatedAmount.div(
-      diffInSeconds(blockTimestamp, startOfDay)
-    );
+    oi.accumulatedAmount = oi.accumulatedAmount.plus(diffInSeconds(blockTimestamp, oi.timestamp).times(oi.amount));
+    dh.openInterest = oi.accumulatedAmount.div(diffInSeconds(blockTimestamp, startOfDay));
     oiForSymbol.accumulatedAmount = oiForSymbol.accumulatedAmount.plus(
-      diffInSeconds(blockTimestamp, oiForSymbol.timestamp).times(
-        oiForSymbol.amount
-      )
+      diffInSeconds(blockTimestamp, oiForSymbol.timestamp).times(oiForSymbol.amount)
     );
   } else {
     dh.openInterest = oi.accumulatedAmount.div(BigInt.fromString("86400"));
-    oi.accumulatedAmount = diffInSeconds(blockTimestamp, startOfDay).times(
-      oi.amount
-    );
-    oiForSymbol.accumulatedAmount = diffInSeconds(
-      blockTimestamp,
-      startOfDay
-    ).times(oiForSymbol.amount);
+    oi.accumulatedAmount = diffInSeconds(blockTimestamp, startOfDay).times(oi.amount);
+    oiForSymbol.accumulatedAmount = diffInSeconds(blockTimestamp, startOfDay).times(oiForSymbol.amount);
   }
 
   oi.amount = increase ? oi.amount.plus(value) : oi.amount.minus(value);
   oi.timestamp = blockTimestamp;
-  oiForSymbol.amount = increase
-    ? oiForSymbol.amount.plus(value)
-    : oiForSymbol.amount.minus(value);
+  oiForSymbol.amount = increase ? oiForSymbol.amount.plus(value) : oiForSymbol.amount.minus(value);
   oiForSymbol.timestamp = blockTimestamp;
   dh.updateTimestamp = blockTimestamp;
 
@@ -357,20 +294,12 @@ export function updateDailyOpenInterest(
   oiForSymbol.save();
 }
 
-export function updateActivityTimestamps(
-  account: Account,
-  timestamp: BigInt
-): void {
+export function updateActivityTimestamps(account: Account, timestamp: BigInt): void {
   account.lastActivityTimestamp = timestamp;
   account.save();
-  let ua: UserActivity = getUserActivity(
-    account.user,
-    account.accountSource,
-    timestamp
-  );
+  let ua: UserActivity = getUserActivity(account.user, account.accountSource, timestamp);
 
-  let uaTimestamp =
-    ua.updateTimestamp === null ? BigInt.fromString("0") : ua.updateTimestamp!;
+  let uaTimestamp = ua.updateTimestamp === null ? BigInt.fromString("0") : ua.updateTimestamp!;
   if (!isSameDay(timestamp, uaTimestamp)) {
     let dh = getDailyHistoryForTimestamp(timestamp, account.accountSource);
     dh.activeUsers = dh.activeUsers.plus(BigInt.fromString("1"));
@@ -381,15 +310,8 @@ export function updateActivityTimestamps(
   ua.save();
 }
 
-export function getUserActivity(
-  user: string,
-  accountSource: Bytes | null,
-  timestamp: BigInt
-): UserActivity {
-  const id =
-    user +
-    "_" +
-    (accountSource === null ? "null" : accountSource.toHexString());
+export function getUserActivity(user: string, accountSource: Bytes | null, timestamp: BigInt): UserActivity {
+  const id = user + "_" + (accountSource === null ? "null" : accountSource.toHexString());
   let ua: UserActivity | null = UserActivity.load(id);
   if (ua == null) {
     ua = new UserActivity(id);
@@ -417,12 +339,7 @@ export function getSolverDailyHistoryForTimestamp(
 ): SolverDailyHistory {
   const dateStr = getDateFromTimeStamp(timestamp).getTime().toString();
 
-  const id =
-    solver +
-    "_" +
-    dateStr +
-    "_" +
-    (accountSource === null ? "null" : accountSource.toHexString());
+  const id = solver + "_" + dateStr + "_" + (accountSource === null ? "null" : accountSource.toHexString());
   const sdh = SolverDailyHistory.load(id);
   if (sdh == null) {
     const newSdh = new SolverDailyHistory(id);
@@ -441,11 +358,7 @@ export function getSolverDailyHistoryForTimestamp(
   return sdh;
 }
 
-export function getSolverTotalHistory(
-  solver: Solver,
-  timestamp: BigInt,
-  accountSource: Bytes
-): SolverTotalHistory {
+export function getSolverTotalHistory(solver: Solver, timestamp: BigInt, accountSource: Bytes): SolverTotalHistory {
   const id = solver.id;
   const sth = SolverTotalHistory.load(id);
   if (sth == null) {
@@ -471,9 +384,7 @@ export function createNewUser(
   transaction: ethereum.Transaction
 ): UserModel {
   let user = new UserModel(
-    address.toHexString() +
-      "_" +
-      (accountSource === null ? "null" : accountSource.toHexString())
+    address.toHexString() + "_" + (accountSource === null ? "null" : accountSource.toHexString())
   );
   user.timestamp = block.timestamp;
   user.lastActivityTimestamp = block.timestamp;
@@ -592,56 +503,36 @@ export function getQuoteClose(quote: Quote): QuoteClose | null {
   return quoteClose;
 }
 
-export function updatePartyACurrentBalances(
-  address: Address,
-  partyAAdress: Address
-) {
+export function updatePartyACurrentBalances(address: Address, partyAAdress: Address): void {
   const partyABalances = getBalanceInfoOfPartyA(address, partyAAdress);
 
   const account = AccountModel.load(partyAAdress.toHexString());
 
-  if (account === null) {
+  if (account === null || partyABalances === null) {
     return;
   }
 
-  const allocatedBalance = partyABalances?.getValue0();
-  const lockedCVA = partyABalances?.getValue1();
-  const lockedLF = partyABalances?.getValue2();
-  const lockedPartyAmm = partyABalances?.getValue3();
-  const lockedPartyBmm = partyABalances?.getValue4();
-  const pendingCVA = partyABalances?.getValue5();
-  const pendingLF = partyABalances?.getValue6();
-  const pendingPartyAmm = partyABalances?.getValue7();
-  const pendingPartyBmm = partyABalances?.getValue8();
+  const allocatedBalance = partyABalances.getValue0();
+  const lockedCVA = partyABalances.getValue1();
+  const lockedLF = partyABalances.getValue2();
+  const lockedPartyAmm = partyABalances.getValue3();
+  const lockedPartyBmm = partyABalances.getValue4();
+  const pendingCVA = partyABalances.getValue5();
+  const pendingLF = partyABalances.getValue6();
+  const pendingPartyAmm = partyABalances.getValue7();
+  const pendingPartyBmm = partyABalances.getValue8();
 
   // Update account
-  if (allocatedBalance !== undefined) {
-    account.allocatedBalance = allocatedBalance;
-  }
-  if (lockedCVA !== undefined) {
-    account.lockedCVA = lockedCVA;
-  }
-  if (lockedLF !== undefined) {
-    account.lockedLF = lockedLF;
-  }
-  if (lockedPartyAmm !== undefined) {
-    account.lockedPartyAmm = lockedPartyAmm;
-  }
-  if (lockedPartyBmm !== undefined) {
-    account.lockedPartyBmm = lockedPartyBmm;
-  }
-  if (pendingCVA !== undefined) {
-    account.pendingCVA = pendingCVA;
-  }
-  if (pendingLF !== undefined) {
-    account.pendingLF = pendingLF;
-  }
-  if (pendingPartyAmm !== undefined) {
-    account.pendingPartyAmm = pendingPartyAmm;
-  }
-  if (pendingPartyBmm !== undefined) {
-    account.pendingPartyBmm = pendingPartyBmm;
-  }
+
+  account.allocatedBalance = allocatedBalance;
+  account.lockedCVA = lockedCVA;
+  account.lockedLF = lockedLF;
+  account.lockedPartyAmm = lockedPartyAmm;
+  account.lockedPartyBmm = lockedPartyBmm;
+  account.pendingCVA = pendingCVA;
+  account.pendingLF = pendingLF;
+  account.pendingPartyAmm = pendingPartyAmm;
+  account.pendingPartyBmm = pendingPartyBmm;
 
   return account.save();
 }

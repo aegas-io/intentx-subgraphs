@@ -6,15 +6,15 @@
     "build": "graph build",
     "test": "graph test",
     "prepare:base": "mustache ../configs/aggregated/base_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:base": "goldsky subgraph deploy intentx-base-analytics-083/0.0.7 --path .",
+    "deploy:base": "goldsky subgraph deploy intentx-base-analytics-083/0.0.8 --path .",
     "prepare:blast": "mustache ../configs/aggregated/blast_082.json template.yaml > subgraph.yaml; graph build",
     "deploy:blast": "goldsky subgraph deploy intentx-blast-analytics-083/0.0.4 --path .",
     "prepare:thena": "mustache ../configs/aggregated/bsc_082.json template.yaml > subgraph.yaml; graph build",
     "deploy:thena": "goldsky subgraph deploy intentx-bsc-analytics-083/0.1.0 --path .",
     "prepare:mantle": "mustache ../configs/aggregated/mantle_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:mantle": "goldsky subgraph deploy intentx-mantle-analytics-083/0.1.1 --path .",
+    "deploy:mantle": "goldsky subgraph deploy intentx-mantle-analytics-083/0.1.2 --path .",
     "prepare:arbitrum": "mustache ../configs/aggregated/arbitrum.json template.yaml > subgraph.yaml; graph build",
-    "deploy:arbitrum": "goldsky subgraph deploy intentx-arbitrum-analytics-083/0.0.1 --path ."
+    "deploy:arbitrum": "goldsky subgraph deploy intentx-arbitrum-analytics-083/0.0.2 --path ."
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.50.1",

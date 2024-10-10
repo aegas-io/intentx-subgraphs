@@ -504,13 +504,8 @@ export function getQuoteClose(quote: Quote): QuoteClose | null {
 }
 
 export function updatePartyACurrentBalances(address: Address, partyAAdress: Address): void {
-  const partyABalances = getBalanceInfoOfPartyA(address, partyAAdress);
-
-  const account = AccountModel.load(partyAAdress.toHexString());
-
-  if (account === null || partyABalances === null) {
-    return;
-  }
+  const partyABalances = getBalanceInfoOfPartyA(address, partyAAdress)!;
+  const account = AccountModel.load(partyAAdress.toHexString())!;
 
   const allocatedBalance = partyABalances.getValue0();
   const lockedCVA = partyABalances.getValue1();

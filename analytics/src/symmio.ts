@@ -280,8 +280,6 @@ function handleClose(_event: ethereum.Event, name: string): void {
   // Updating account allocated balances
   updatePartyACurrentBalances(event.address, event.params.partyA);
 
-  
-
   const symbol = Symbol.load(quote.symbolId.toString());
   if (symbol == null) return;
 
@@ -522,6 +520,9 @@ export function handleSendQuote(event: SendQuote): void {
   uth.quotesCount = uth.quotesCount.plus(BigInt.fromString("1"));
   uth.updateTimestamp = event.block.timestamp;
   uth.save();
+
+  // Updating the account allocated balances
+  updatePartyACurrentBalances(event.address, event.params.partyA);
 }
 
 export function handleExpireQuote(event: ExpireQuote): void {
@@ -680,6 +681,9 @@ export function handleAcceptCancelCloseRequest(event: AcceptCancelCloseRequest):
       quoteClose.save();
     }
   }
+
+  // Updating the account allocated balances
+  updatePartyACurrentBalances(event.address, Address.fromString(quote.account));
 }
 
 export function handleLockQuote(event: LockQuote): void {
@@ -770,9 +774,6 @@ export function handleOpenPosition(event: OpenPosition): void {
 
   account.save();
 
-  // Updating the account allocated balances
-  updatePartyACurrentBalances(event.address, event.params.partyA);
-
   // Updating totalTradeCountAnalytics if user is not null and position is 100% filled
 
   const quoteNotional = quote.openPrice!.times(quote.quantity);
@@ -861,6 +862,9 @@ export function handleOpenPosition(event: OpenPosition): void {
   dsv.save();
 
   updateDailyOpenInterest(quote.symbolId, event.block.timestamp, history.volume, true, account.accountSource);
+
+  // Updating the account allocated balances
+  updatePartyACurrentBalances(event.address, event.params.partyA);
 }
 
 export function handleFillCloseRequest(event: FillCloseRequest): void {
@@ -1082,6 +1086,9 @@ function handleLiquidatePosition(_event: ethereum.Event, qId: BigInt): void {
     false,
     account.accountSource
   );
+
+  // Updating the account allocated balances
+  updatePartyACurrentBalances(event.address, event.params.partyA);
 }
 
 export function handleLiquidationDisputed(event: DisputeForLiquidation): void {
@@ -1092,6 +1099,9 @@ export function handleLiquidationDisputed(event: DisputeForLiquidation): void {
   model.timestamp = event.block.timestamp;
   model.transaction = event.transaction.hash;
   model.save();
+
+  // Updating the account allocated balances
+  updatePartyACurrentBalances(event.address, event.params.partyA);
 }
 
 // let lastActionTimestamp: BigInt = BigInt.zero();
@@ -1278,32 +1288,6 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
 }
 
 export function handleBalanceChangePartyA(event: BalanceChangePartyA): void {
-  let account = AccountModel.load(event.params.partyA.toHexString());
-
-  if (account == null) {
-    return;
-  }
-
-  /* if (event.params._type == BalanceChangeType.ALLOCATE) {
-    account.allocatedBalance = account.allocatedBalance.plus(
-      event.params.amount
-    );
-  } else if (event.params._type == BalanceChangeType.DEALLOCATE) {
-    account.allocatedBalance = account.allocatedBalance.minus(
-      event.params.amount
-    );
-  } else if (event.params._type == BalanceChangeType.REALIZED_PNL_IN) {
-    account.allocatedBalance = account.allocatedBalance.plus(
-      event.params.amount
-    );
-  } else if (event.params._type == BalanceChangeType.REALIZED_PNL_OUT) {
-    account.allocatedBalance = account.allocatedBalance.minus(
-      event.params.amount
-    );
-  } 
-
-  account.save();*/
-
   updatePartyACurrentBalances(event.address, event.params.partyA);
 }
 

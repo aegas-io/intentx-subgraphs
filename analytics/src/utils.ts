@@ -504,30 +504,32 @@ export function getQuoteClose(quote: Quote): QuoteClose | null {
 }
 
 export function updatePartyACurrentBalances(address: Address, partyAAdress: Address): void {
-  const partyABalances = getBalanceInfoOfPartyA(address, partyAAdress)!;
-  const account = AccountModel.load(partyAAdress.toHexString())!;
+  const account = AccountModel.load(partyAAdress.toHexString());
 
-  const allocatedBalance = partyABalances.getValue0();
-  const lockedCVA = partyABalances.getValue1();
-  const lockedLF = partyABalances.getValue2();
-  const lockedPartyAmm = partyABalances.getValue3();
-  const lockedPartyBmm = partyABalances.getValue4();
-  const pendingCVA = partyABalances.getValue5();
-  const pendingLF = partyABalances.getValue6();
-  const pendingPartyAmm = partyABalances.getValue7();
-  const pendingPartyBmm = partyABalances.getValue8();
+  if (account) {
+    const partyABalances = getBalanceInfoOfPartyA(address, partyAAdress)!;
+    const allocatedBalance = partyABalances.getValue0();
+    const lockedCVA = partyABalances.getValue1();
+    const lockedLF = partyABalances.getValue2();
+    const lockedPartyAmm = partyABalances.getValue3();
+    const lockedPartyBmm = partyABalances.getValue4();
+    const pendingCVA = partyABalances.getValue5();
+    const pendingLF = partyABalances.getValue6();
+    const pendingPartyAmm = partyABalances.getValue7();
+    const pendingPartyBmm = partyABalances.getValue8();
 
-  // Update account
+    // Update account
 
-  account.allocatedBalance = allocatedBalance;
-  account.lockedCVA = lockedCVA;
-  account.lockedLF = lockedLF;
-  account.lockedPartyAmm = lockedPartyAmm;
-  account.lockedPartyBmm = lockedPartyBmm;
-  account.pendingCVA = pendingCVA;
-  account.pendingLF = pendingLF;
-  account.pendingPartyAmm = pendingPartyAmm;
-  account.pendingPartyBmm = pendingPartyBmm;
+    account.allocatedBalance = allocatedBalance;
+    account.lockedCVA = lockedCVA;
+    account.lockedLF = lockedLF;
+    account.lockedPartyAmm = lockedPartyAmm;
+    account.lockedPartyBmm = lockedPartyBmm;
+    account.pendingCVA = pendingCVA;
+    account.pendingLF = pendingLF;
+    account.pendingPartyAmm = pendingPartyAmm;
+    account.pendingPartyBmm = pendingPartyBmm;
 
-  return account.save();
+    account.save();
+  }
 }

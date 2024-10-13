@@ -60,6 +60,8 @@ type Account @entity {
   pendingLF: BigInt
   pendingPartyAmm: BigInt
   pendingPartyBmm: BigInt
+
+  quotes: [Quote!]! @derivedFrom(field: "account")
 }
 
 type BalanceChange @entity {
@@ -87,7 +89,7 @@ type TradeHistory @entity {
 
 type Quote @entity {
   id: ID!
-  account: String!
+  account: Account!
   accountSource: Bytes
   symbolId: BigInt!
   positionType: Int!

@@ -4,10 +4,12 @@ import {
   AcceptCancelRequest,
   ActiveEmergencyMode,
   AddSymbol,
+  AllocatePartyA,
   BalanceChangePartyA,
   BalanceChangePartyB,
   ChargeFundingRate,
   DeactiveEmergencyMode,
+  DeallocatePartyA,
   Deposit,
   DiamondCut,
   DisputeForLiquidation,
@@ -386,6 +388,8 @@ export function handleDeposit(event: Deposit): void {
   uth.deposit = uth.deposit.plus(deposit.amount);
   uth.updateTimestamp = event.block.timestamp;
   uth.save();
+
+  updatePartyACurrentBalances(event.address, event.params.user);
 }
 
 export function handleWithdraw(event: Withdraw): void {
@@ -428,6 +432,8 @@ export function handleWithdraw(event: Withdraw): void {
   uth.withdraw = uth.withdraw.plus(withdraw.amount);
   uth.updateTimestamp = event.block.timestamp;
   uth.save();
+
+  updatePartyACurrentBalances(event.address, event.params.user);
 }
 
 export function handleSendQuote(event: SendQuote): void {
@@ -1292,3 +1298,11 @@ export function handleBalanceChangePartyA(event: BalanceChangePartyA): void {
 }
 
 export function handleBalanceChangePartyB(event: BalanceChangePartyB): void {}
+
+export function handleAllocatePartyA(event: AllocatePartyA): void {
+  updatePartyACurrentBalances(event.address, event.params.user);
+}
+
+export function handleDeallocatePartyA(event: DeallocatePartyA): void {
+  updatePartyACurrentBalances(event.address, event.params.user);
+}

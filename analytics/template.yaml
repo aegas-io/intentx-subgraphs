@@ -159,6 +159,11 @@ dataSources:
           handler: handleBalanceChangePartyA
         - event: BalanceChangePartyB(indexed address,indexed address,uint256,uint8)
           handler: handleBalanceChangePartyB
+        - event: AllocatePartyA(address,uint256,uint256)
+          handler: handleAllocatePartyA
+        - event: DeallocatePartyA(address,uint256,uint256)
+          handler: handleDeallocatePartyA
+        
       file: ./src/symmio.ts
 
   - kind: ethereum

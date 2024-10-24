@@ -1306,3 +1306,34 @@ export function handleAllocatePartyA(event: AllocatePartyA): void {
 export function handleDeallocatePartyA(event: DeallocatePartyA): void {
   updatePartyACurrentBalances(event.address, event.params.user);
 }
+
+export function handleInternalTransfer(event: InternalTransfer): void {
+  let account = AccountModel.load(event.params.user.toHexString());
+  if (account == null) {
+    let user = createNewUser(event.params.user, null, event.block, event.transaction);
+    account = createNewAccount(event.params.user.toHexString(), user, null, event.block, event.transaction);
+  }
+  account.allocatedBalance = event.params.userNewAllocatedBalance;
+  account.save();
+  updateActivityTimestamps(account, event.block.timestamp);
+
+  let internalTransfer = new BalanceChange(event.transaction.hash.toHex() + "-" + event.logIndex.toHexString());
+  internalTransfer.type = "INTERNAL_TRANSFER";
+  internalTransfer.timestamp = event.block.timestamp;
+  internalTransfer.blockNumber = event.block.number;
+  internalTransfer.transaction = event.transaction.hash;
+  internalTransfer.amount = event.params.amount;
+  internalTransfer.account = account.id;
+  internalTransfer.collateral = getConfiguration(event).collateral;
+  internalTransfer.save();
+
+  const th = getTotalHistory(event.block.timestamp, account.accountSource);
+  th.deposit = th.deposit.plus(internalTransfer.amount);
+  th.updateTimestamp = event.block.timestamp;
+  th.save();
+
+  const uth = getUserTotalHistory(event.block.timestamp, account.accountSource, account.user);
+  uth.deposit = uth.deposit.plus(internalTransfer.amount);
+  uth.updateTimestamp = event.block.timestamp;
+  uth.save();
+}

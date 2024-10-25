@@ -164,6 +164,7 @@ dataSources:
         - event: DeallocatePartyA(address,uint256,uint256)
           handler: handleDeallocatePartyA
         - event: InternalTransfer(address,address,uint256,uint256)
+          handler: handleInternalTransfer
         
       file: ./src/symmio.ts
 

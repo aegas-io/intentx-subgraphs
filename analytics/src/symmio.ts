@@ -20,6 +20,7 @@ import {
   ForceCancelQuote,
   ForceClosePosition,
   FullyLiquidatedPartyB,
+  InternalTransfer,
   LiquidatePartyA,
   LiquidatePartyB,
   LiquidatePositionsPartyA,

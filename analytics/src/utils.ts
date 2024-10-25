@@ -507,7 +507,8 @@ export function updatePartyACurrentBalances(address: Address, partyAAdress: Addr
   const account = AccountModel.load(partyAAdress.toHexString());
 
   if (account) {
-    const partyABalances = getBalanceInfoOfPartyA(address, partyAAdress)!;
+    const partyABalances = getBalanceInfoOfPartyA(address, partyAAdress);
+    if (partyABalances == null) return;
     const allocatedBalance = partyABalances.getValue0();
     const lockedCVA = partyABalances.getValue1();
     const lockedLF = partyABalances.getValue2();

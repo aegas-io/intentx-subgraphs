@@ -75,7 +75,6 @@ import {
   GrantedRole,
   PaidFundingFee,
   PartyALiquidation,
-  PartyALiquidationDisputed,
   PartyASymbolPrice,
   PartyBLiquidation,
   PriceCheck,
@@ -1099,7 +1098,7 @@ function handleLiquidatePosition(_event: ethereum.Event, qId: BigInt): void {
 }
 
 export function handleLiquidationDisputed(event: DisputeForLiquidation): void {
-  let model = new PartyALiquidationDisputed(
+  /* let model = new PartyALiquidationDisputed(
     event.transaction.hash.toHexString() + event.transactionLogIndex.toString()
   );
   model.partyA = event.params.partyA;
@@ -1108,7 +1107,7 @@ export function handleLiquidationDisputed(event: DisputeForLiquidation): void {
   model.save();
 
   // Updating the account allocated balances
-  updatePartyACurrentBalances(event.address, event.params.partyA);
+  updatePartyACurrentBalances(event.address, event.params.partyA); */
 }
 
 // let lastActionTimestamp: BigInt = BigInt.zero();

@@ -10,7 +10,7 @@
     "prepare:blast": "mustache ../configs/aggregated/blast_082.json template.yaml > subgraph.yaml; graph build",
     "deploy:blast": "goldsky subgraph deploy intentx-blast-analytics-083/0.0.5 --path .",
     "prepare:thena": "mustache ../configs/aggregated/bsc_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:thena": "goldsky subgraph deploy intentx-bsc-analytics-083/0.1.1 --path .",
+    "deploy:thena": "goldsky subgraph deploy intentx-bsc-analytics-083/0.1.2 --path .",
     "prepare:mantle": "mustache ../configs/aggregated/mantle_082.json template.yaml > subgraph.yaml; graph build",
     "deploy:mantle": "goldsky subgraph deploy intentx-mantle-analytics-083/0.1.5 --path .",
     "prepare:arbitrum": "mustache ../configs/aggregated/arbitrum.json template.yaml > subgraph.yaml; graph build",

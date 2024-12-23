@@ -53,7 +53,7 @@ dataSources:
           handler: handleDiamondCut
         - event: AcceptCancelCloseRequest(uint256,uint8)
           handler: handleAcceptCancelCloseRequest
-        - event: AcceptCancelRequest(uint256,uint8)
+        - event: AcceptCancelRequest(uint256)
           handler: handleAcceptCancelRequest
         - event: EmergencyClosePosition(uint256,address,address,uint256,uint256,uint8)
           handler: handleEmergencyClosePosition

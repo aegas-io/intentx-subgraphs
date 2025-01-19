@@ -165,7 +165,7 @@ dataSources:
           handler: handleDeallocatePartyA
         - event: InternalTransfer(address,address,uint256,uint256)
           handler: handleInternalTransfer
-        - event: SettleUpnl(address,uint256,uint256[],uint256[])
+        - event: SettleUpnl((uint256,address,uint256,uint256)[],uint256[],indexed address,uint256,uint256[])
           handler: handleSettleUpnl
         
       file: ./src/symmio.ts

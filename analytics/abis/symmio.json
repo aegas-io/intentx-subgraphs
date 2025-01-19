@@ -6869,8 +6869,7 @@
     ],
     "stateMutability": "payable",
     "type": "function"
-  }
-  ,
+  },
   {
     "anonymous": false,
     "inputs": [

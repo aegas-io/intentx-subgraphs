@@ -62,6 +62,7 @@ type Account @entity {
   pendingPartyBmm: BigInt
 
   quotes: [Quote!]! @derivedFrom(field: "account")
+  accountSettlementData: [AccountSettlementData!]! @derivedFrom(field: "account")
 }
 
 type BalanceChange @entity {
@@ -485,7 +486,6 @@ type AccountSettlementData @entity {
   id: ID!
   account: Account
   newPartyAAllocatedBalance: BigInt!
-  updatedPrice: BigInt!
   timestamp: BigInt!
   transaction: Bytes!
 }

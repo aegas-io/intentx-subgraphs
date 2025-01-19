@@ -85,7 +85,6 @@ import {
   SymbolFeeChange,
   TradeHistory as TradeHistoryModel,
   User,
-  SettledUpnl,
   QuoteSettlementData,
   AccountSettlementData,
 } from "./../generated/schema";
@@ -110,9 +109,7 @@ import {
   updateDailyOpenInterest,
   updatePartyACurrentBalances,
 } from "./utils";
-
 import { ethereum } from "@graphprotocol/graph-ts/chain/ethereum";
-
 export enum QuoteStatus {
   PENDING,
   LOCKED,
@@ -1345,14 +1342,11 @@ export function handleInternalTransfer(event: InternalTransfer): void {
 export function handleSettleUpnl(event: SettleUpnl): void {
   // For the quotes, we are going to update the openPriceFundingData, that is modified by the funding rate + settle upnl
   // Iterate over the quoteSettlementData
-
   let accountSettlementData = new AccountSettlementData(
     event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
   );
   accountSettlementData.account = event.params.partyA.toHexString();
   accountSettlementData.newPartyAAllocatedBalance = event.params.newPartyAAllocatedBalance;
-  accountSettlementData.partyB = event.params.partyB;
-  accountSettlementData.updatedPrice = event.params.updatedPrices[0];
   accountSettlementData.timestamp = event.block.timestamp;
   accountSettlementData.transaction = event.transaction.hash;
   accountSettlementData.save();

@@ -66,6 +66,7 @@ import {
   UnpausePartyAActions,
   UnpausePartyBActions,
   Withdraw,
+  SettleUpnl,
 } from "../generated/symmio/symmio";
 
 import {
@@ -84,6 +85,9 @@ import {
   SymbolFeeChange,
   TradeHistory as TradeHistoryModel,
   User,
+  SettledUpnl,
+  QuoteSettlementData,
+  AccountSettlementData,
 } from "./../generated/schema";
 
 import { getBalanceInfoOfPartyA, getBalanceInfoOfPartyB, getLiquidatedStateOfPartyA, getQuote } from "./contract_utils";
@@ -1336,4 +1340,41 @@ export function handleInternalTransfer(event: InternalTransfer): void {
   uth.deposit = uth.deposit.plus(internalTransfer.amount);
   uth.updateTimestamp = event.block.timestamp;
   uth.save();
+}
+
+export function handleSettleUpnl(event: SettleUpnl): void {
+  // For the quotes, we are going to update the openPriceFundingData, that is modified by the funding rate + settle upnl
+  // Iterate over the quoteSettlementData
+
+  let accountSettlementData = new AccountSettlementData(
+    event.transaction.hash.toHexString() + "-" + event.logIndex.toString()
+  );
+  accountSettlementData.account = event.params.partyA.toHexString();
+  accountSettlementData.newPartyAAllocatedBalance = event.params.newPartyAAllocatedBalance;
+  accountSettlementData.partyB = event.params.partyB;
+  accountSettlementData.updatedPrice = event.params.updatedPrices[0];
+  accountSettlementData.timestamp = event.block.timestamp;
+  accountSettlementData.transaction = event.transaction.hash;
+  accountSettlementData.save();
+
+  for (let i = 0; i < event.params.updatedPrices.length; i++) {
+    const updatedPrice = event.params.updatedPrices[i];
+    const quoteSettlementData = event.params.settlementData[i];
+    const quote = QuoteModel.load(quoteSettlementData.quoteId.toString());
+    if (quote) {
+      quote.openPriceFundingRate = updatedPrice;
+      quote.save();
+
+      // Creating a quoteSettlementData entity
+      let quoteSettlementDataEntity = new QuoteSettlementData(
+        event.transaction.hash.toHexString() + "-" + quoteSettlementData.quoteId.toString()
+      );
+      quoteSettlementDataEntity.quote = quote.id;
+      quoteSettlementDataEntity.partyB = quoteSettlementData.partyB;
+      quoteSettlementDataEntity.updatedPrice = updatedPrice;
+      quoteSettlementDataEntity.timestamp = event.block.timestamp;
+      quoteSettlementDataEntity.transaction = event.transaction.hash;
+      quoteSettlementDataEntity.save();
+    }
+  }
 }

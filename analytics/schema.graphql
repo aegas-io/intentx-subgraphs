@@ -94,12 +94,17 @@ type Quote @entity {
   symbolId: BigInt!
   positionType: Int!
   orderType: Int!
-  price: BigInt!
-  marketPrice: BigInt!
-  openPrice: BigInt
+  
   deadline: BigInt!
   partyBsWhiteList: [Bytes!]
   quantity: BigInt!
+
+  price: BigInt!
+  marketPrice: BigInt!
+  openPrice: BigInt
+  openPriceFundingRate: BigInt!
+  paidFundingRate: BigInt!
+  paidFundingFeeHistory: [PaidFundingFee!]! @derivedFrom(field: "quote")
 
   remainingLF: BigInt!
   remainingCVA: BigInt!
@@ -124,9 +129,7 @@ type Quote @entity {
   user: User!
   solver: Solver
   symbol: Symbol!
-  openPriceFundingRate: BigInt!
-  paidFundingRate: BigInt!
-  paidFundingFeeHistory: [PaidFundingFee!]! @derivedFrom(field: "quote")
+  
 
   requestedCloseCount: BigInt!
   quoteCloses: [QuoteClose!]! @derivedFrom(field: "quote")
@@ -158,6 +161,8 @@ type Quote @entity {
   liquidationPrice: BigInt
 
   fullyClosedAt: BigInt
+
+  quoteSettlements: [QuoteSettlementData!]! @derivedFrom(field: "quote")
 }
 
 type QuoteClose @entity {
@@ -465,4 +470,22 @@ type PartyASymbolPrice @entity {
   requestedOpenPrice: BigInt!
   timeStamp: BigInt!
   trHash: Bytes!
+}
+
+type QuoteSettlementData @entity {
+  id: ID!
+  quote: Quote!
+  partyB: Bytes!
+  updatedPrice: BigInt!
+  timestamp: BigInt!
+  transaction: Bytes!
+}
+
+type AccountSettlementData @entity {
+  id: ID!
+  account: Account
+  newPartyAAllocatedBalance: BigInt!
+  updatedPrice: BigInt!
+  timestamp: BigInt!
+  transaction: Bytes!
 }

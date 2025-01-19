@@ -6870,4 +6870,64 @@
     "stateMutability": "payable",
     "type": "function"
   }
+  ,
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint256",
+            "name": "quoteId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "partyB",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "filledAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "closedPrice",
+            "type": "uint256"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct QuoteSettlementData[]",
+        "name": "settlementData",
+        "type": "tuple[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "updatedPrices",
+        "type": "uint256[]"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "partyA",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "newPartyAAllocatedBalance",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256[]",
+        "name": "newPartyBsAllocatedBalances",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "SettleUpnl",
+    "type": "event"
+  }
 ]

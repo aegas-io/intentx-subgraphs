@@ -6,7 +6,7 @@
     "build": "graph build",
     "test": "graph test",
     "prepare:base": "mustache ../configs/aggregated/base_082.json template.yaml > subgraph.yaml; graph build",
-    "deploy:base": "goldsky subgraph deploy intentx-base-analytics-083/0.1.1 --path .",
+    "deploy:base": "goldsky subgraph deploy intentx-base-analytics-083/0.1.3 --path .",
     "prepare:blast": "mustache ../configs/aggregated/blast_082.json template.yaml > subgraph.yaml; graph build",
     "deploy:blast": "goldsky subgraph deploy intentx-blast-analytics-083/0.0.5 --path .",
     "prepare:thena": "mustache ../configs/aggregated/bsc_082.json template.yaml > subgraph.yaml; graph build",

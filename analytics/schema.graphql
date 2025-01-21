@@ -476,7 +476,6 @@ type PartyASymbolPrice @entity {
 type QuoteSettlementData @entity {
   id: ID!
   quote: Quote!
-  partyB: Bytes!
   updatedPrice: BigInt!
   timestamp: BigInt!
   transaction: Bytes!

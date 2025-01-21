@@ -1364,7 +1364,6 @@ export function handleSettleUpnl(event: SettleUpnl): void {
         event.transaction.hash.toHexString() + "-" + quoteSettlementData.quoteId.toString()
       );
       quoteSettlementDataEntity.quote = quote.id;
-      quoteSettlementDataEntity.partyB = quoteSettlementData.partyB;
       quoteSettlementDataEntity.updatedPrice = updatedPrice;
       quoteSettlementDataEntity.timestamp = event.block.timestamp;
       quoteSettlementDataEntity.transaction = event.transaction.hash;

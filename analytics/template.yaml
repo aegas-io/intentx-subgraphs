@@ -55,6 +55,8 @@ dataSources:
           handler: handleAcceptCancelCloseRequest
         - event: AcceptCancelRequest(uint256)
           handler: handleAcceptCancelRequest
+        - event: AcceptCancelRequest(uint256,uint8)
+          handler: handleAcceptCancelRequest
         - event: EmergencyClosePosition(uint256,address,address,uint256,uint256,uint8)
           handler: handleEmergencyClosePosition
         - event: FillCloseRequest(uint256,address,address,uint256,uint256,uint8)

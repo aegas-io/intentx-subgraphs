@@ -5659,6 +5659,25 @@
         "internalType": "uint256",
         "name": "quoteId",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum QuoteStatus",
+        "name": "quoteStatus",
+        "type": "uint8"
+      }
+    ],
+    "name": "AcceptCancelRequest",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "quoteId",
+        "type": "uint256"
       }
     ],
     "name": "AcceptCancelRequest",

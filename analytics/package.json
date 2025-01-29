@@ -14,7 +14,7 @@
     "prepare:mantle": "mustache ../configs/aggregated/mantle_082.json template.yaml > subgraph.yaml; graph build",
     "deploy:mantle": "goldsky subgraph deploy intentx-mantle-analytics-083/0.1.6 --path .",
     "prepare:arbitrum": "mustache ../configs/aggregated/arbitrum.json template.yaml > subgraph.yaml; graph build",
-    "deploy:arbitrum": "goldsky subgraph deploy intentx-arbitrum-analytics-083/0.0.5 --path ."
+    "deploy:arbitrum": "goldsky subgraph deploy intentx-arbitrum-analytics-083/0.0.6 --path ."
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.50.1",

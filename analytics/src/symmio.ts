@@ -553,6 +553,14 @@ export function handleRequestToCancelQuote(event: RequestToCancelQuote): void {
   if (quote) {
     quote.requestToCancelAt = event.block.timestamp;
     quote.requestToCancelTransaction = event.transaction.hash;
+    if (quote.quoteStatus === QuoteStatus.PENDING) {
+      quote.quoteStatus = QuoteStatus.CANCELED;
+      quote.updateTimestamp = event.block.timestamp;
+      quote.cancelAt = event.block.timestamp;
+      quote.cancelTransaction = event.transaction.hash;
+
+      updatePartyACurrentBalances(event.address, Address.fromString(quote.account));
+    }
     quote.save();
   }
 }

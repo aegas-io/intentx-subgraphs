@@ -1,0 +1,13 @@
+{
+  "network": "berachain-mainnet",
+  "symmioAddress": "0x91Cf2D8Ed503EC52768999aA6D8DBeA6e52dbe43",
+  "symmioStartBlock": "779223",
+  "symmioVersion": "0.8.4",
+  "multiAccounts": [
+    {
+      "symmioMultiAccountAddress": "0x8Ab178C07184ffD44F0ADfF4eA2ce6cFc33F3b86",
+      "symmioMultiAccountStartBlock": "837565",
+      "symmioMultiAccountName": "LodeMultiaccount"
+    }
+  ]
+}

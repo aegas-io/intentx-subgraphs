@@ -1,0 +1,45 @@
+apiVersion: 3
+name: base-intentx-analytics-realtime-postgres
+status: ACTIVE
+sources:
+  base_quote:
+    type: subgraph_entity
+    subgraphs:
+      - name: intentx-base-analytics-083
+        version: 0.1.2
+    name: quote
+  base_account:
+    type: subgraph_entity
+    subgraphs:
+      - name: intentx-base-analytics-083
+        version: 0.1.2
+    name: account
+  base_user:
+    type: subgraph_entity
+    subgraphs:
+      - name: intentx-base-analytics-083
+        version: 0.1.2
+    name: user
+transforms: {}
+sinks:
+  postgres_base_quote:
+    type: postgres
+    table: base_quote
+    schema: public
+    secret_name: POSTGRES_INDEXING_SECRET
+    description: 'Postgres sink for: base_quote'
+    from: base_quote
+  postgres_base_account:
+    type: postgres
+    table: base_account
+    schema: public
+    secret_name: POSTGRES_INDEXING_SECRET
+    description: 'Postgres sink for: base_account'
+    from: base_account
+  postgres_base_user:
+    type: postgres
+    table: base_user
+    schema: public
+    secret_name: POSTGRES_INDEXING_SECRET
+    description: 'Postgres sink for: base_user'
+    from: base_user

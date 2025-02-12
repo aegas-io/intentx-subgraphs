@@ -1,0 +1,45 @@
+apiVersion: 3
+name: mantle-intentx-analytics
+status: ACTIVE
+sources:
+  mantle_user:
+    type: subgraph_entity
+    subgraphs:
+      - name: intentx-mantle-analytics-083
+        version: 0.1.6
+    name: user
+  mantle_account:
+    type: subgraph_entity
+    subgraphs:
+      - name: intentx-mantle-analytics-083
+        version: 0.1.6
+    name: account
+  mantle_quote:
+    type: subgraph_entity
+    subgraphs:
+      - name: intentx-mantle-analytics-083
+        version: 0.1.6
+    name: quote
+transforms: {}
+sinks:
+  postgres_mantle_user:
+    type: postgres
+    table: mantle_user
+    schema: public
+    secret_name: POSTGRES_INDEXING_SECRET
+    description: 'Postgres sink for: mantle_user'
+    from: mantle_user
+  postgres_mantle_account:
+    type: postgres
+    table: mantle_account
+    schema: public
+    secret_name: POSTGRES_INDEXING_SECRET
+    description: 'Postgres sink for: mantle_account'
+    from: mantle_account
+  postgres_mantle_quote:
+    type: postgres
+    table: mantle_quote
+    schema: public
+    secret_name: POSTGRES_INDEXING_SECRET
+    description: 'Postgres sink for: mantle_quote'
+    from: mantle_quote

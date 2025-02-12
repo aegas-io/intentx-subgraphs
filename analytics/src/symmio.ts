@@ -232,6 +232,7 @@ function handleClose(_event: ethereum.Event, name: string): void {
     quoteClose.fillTransaction = event.transaction.hash;
 
     if (quote.closedAmount.equals(quote.quantity)) {
+      quoteClose.closePrice = event.params.closedPrice;
       quoteClose.fullyFilledAt = event.block.timestamp;
       quoteClose.fullyFilledAtTx = event.transaction.hash;
 
@@ -640,9 +641,8 @@ export function handleRequestToClosePosition(event: RequestToClosePosition): voi
   quoteClose.requestAt = event.block.timestamp;
   quoteClose.requestCloseTransaction = event.transaction.hash;
   quoteClose.orderType = event.params.orderType;
-  quoteClose.closePrice = event.params.closePrice;
   quoteClose.quantity = event.params.quantityToClose;
-
+  quoteClose.requestedPrice = event.params.closePrice;
   quoteClose.save();
 }
 

@@ -1,0 +1,45 @@
+apiVersion: 3
+name: arbitrum-intentx-analytics
+status: ACTIVE
+sources:
+  arbitrum_user:
+    type: subgraph_entity
+    subgraphs:
+      - name: intentx-arbitrum-analytics-083
+        version: 0.0.6
+    name: user
+  arbitrum_account:
+    type: subgraph_entity
+    subgraphs:
+      - name: intentx-arbitrum-analytics-083
+        version: 0.0.6
+    name: account
+  arbitrum_quote:
+    type: subgraph_entity
+    subgraphs:
+      - name: intentx-arbitrum-analytics-083
+        version: 0.0.6
+    name: quote
+transforms: {}
+sinks:
+  postgres_arbitrum_user:
+    type: postgres
+    table: arbitrum_user
+    schema: public
+    secret_name: POSTGRES_INDEXING_SECRET
+    description: 'Postgres sink for: arbitrum_user'
+    from: arbitrum_user
+  postgres_arbitrum_account:
+    type: postgres
+    table: arbitrum_account
+    schema: public
+    secret_name: POSTGRES_INDEXING_SECRET
+    description: 'Postgres sink for: arbitrum_account'
+    from: arbitrum_account
+  postgres_arbitrum_quote:
+    type: postgres
+    table: arbitrum_quote
+    schema: public
+    secret_name: POSTGRES_INDEXING_SECRET
+    description: 'Postgres sink for: arbitrum_quote'
+    from: arbitrum_quote

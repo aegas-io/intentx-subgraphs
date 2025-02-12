@@ -191,7 +191,8 @@ type QuoteClose @entity {
   forceCancelCloseTransaction: Bytes
 
   orderType: Int!
-  closePrice: BigInt!
+  closePrice: BigInt
+  requestedPrice: BigInt
 
   quantity: BigInt!
 }

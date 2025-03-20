@@ -671,6 +671,7 @@ export function handleRequestToCancelQuote(event: RequestToCancelQuote): void {
         Address.fromString(quote.account)
       );
     }
+
     quote.save();
   }
 }
@@ -761,24 +762,26 @@ export function handleRequestToClosePosition(
   updateActivityTimestamps(account, event.block.timestamp);
 
   let quote = QuoteModel.load(event.params.quoteId.toString())!;
-  quote.quoteStatus = QuoteStatus.CLOSE_PENDING;
-  quote.updateTimestamp = event.block.timestamp;
-  quote.requestedCloseCount = quote.requestedCloseCount.plus(
-    BigInt.fromString("1")
-  );
-  quote.save();
+  if (quote) {
+    quote.quoteStatus = QuoteStatus.CLOSE_PENDING;
+    quote.updateTimestamp = event.block.timestamp;
+    quote.requestedCloseCount = quote.requestedCloseCount.plus(
+      BigInt.fromString("1")
+    );
+    quote.save();
 
-  // Creating a quote close
-  let quoteClose = new QuoteClose(
-    quote.id + "-" + quote.requestedCloseCount.toString()
-  );
-  quoteClose.quote = quote.id;
-  quoteClose.requestAt = event.block.timestamp;
-  quoteClose.requestCloseTransaction = event.transaction.hash;
-  quoteClose.orderType = event.params.orderType;
-  quoteClose.quantity = event.params.quantityToClose;
-  quoteClose.requestedPrice = event.params.closePrice;
-  quoteClose.save();
+    // Creating a quote close
+    let quoteClose = new QuoteClose(
+      quote.id + "-" + quote.requestedCloseCount.toString()
+    );
+    quoteClose.quote = quote.id;
+    quoteClose.requestAt = event.block.timestamp;
+    quoteClose.requestCloseTransaction = event.transaction.hash;
+    quoteClose.orderType = event.params.orderType;
+    quoteClose.quantity = event.params.quantityToClose;
+    quoteClose.requestedPrice = event.params.closePrice;
+    quoteClose.save();
+  }
 }
 
 export function handleAcceptCancelRequest(event: AcceptCancelRequest): void {

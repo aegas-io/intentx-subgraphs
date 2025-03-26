@@ -1416,7 +1416,11 @@ export function handleChargeFundingRate(event: ChargeFundingRate): void {
 
   for (let i = 0; i < quoteIds.length; i++) {
     const qId = quoteIds[i];
-    const quote = QuoteModel.load(qId.toString())!;
+    const quote = QuoteModel.load(qId.toString());
+    if (!quote) {
+      continue;
+    }
+
     const solver = quote.solver;
     const user = User.load(quote.user)!;
     const accountAddress = quote.account;

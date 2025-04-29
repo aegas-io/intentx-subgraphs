@@ -1,0 +1,16 @@
+{
+  "network": "coti-mainnet",
+  "symmioAddress": "0x2Ecc7da3Cc98d341F987C85c3D9FC198570838B5",
+  "symmioStartBlock": "185858",
+  "symmioVersion": "0.8.4",
+  "multiAccounts": [
+    {
+      "symmioMultiAccountAddress": "0xbF318724218cED9A3ff7CfC642c71a0CA1952b0F",
+      "symmioMultiAccountStartBlock": "639277",
+      "symmioMultiAccountName": "CotiMultiaccount"
+    }
+  ],
+  "analyticsDeployUrl": "coti-analytics",
+  "mainDeployUrl": "coti-main",
+  "partiesDeployUrl": "coti-parties"
+}

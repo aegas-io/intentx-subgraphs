@@ -1,0 +1,72 @@
+specVersion: 1.0.0
+name: intentx-coti-analytics
+version: 0.0.1
+runner:
+  node:
+    name: '@subql/node-ethereum'
+    version: '*'
+  query:
+    name: '@subql/query'
+    version: '*'
+description: >-
+  IntentX Analytics Subquery Project for COTI Mainnet
+repository: 'https://github.com/intentx/intentx-subgraphs'
+schema:
+  file: ./schema.graphql
+network:
+  # Using COTI mainnet from your configs
+  chainId: '1' # Replace with the actual COTI chain ID
+  endpoint: ['https://mainnet.coti.io/rpc']
+  dictionary: '' # COTI might not have a dictionary yet
+dataSources:
+  - kind: ethereum/Runtime
+    startBlock: 185858 # From your current.json
+    options:
+      # The symmio address from your config
+      address: ['0x2Ecc7da3Cc98d341F987C85c3D9FC198570838B5']
+      abi: symmio
+    assets:
+      symmio:
+        file: ./abis/symmio_0.8.4.json
+    mapping:
+      file: ./dist/index.js
+      handlers:
+        # Examples - add all your event handlers here
+        - handler: handleDeposit
+          kind: ethereum/LogHandler
+          filter:
+            topics:
+              - Deposit(address indexed sender, address indexed user, uint256 amount)
+        - handler: handleWithdraw
+          kind: ethereum/LogHandler
+          filter:
+            topics:
+              - Withdraw(address indexed user, uint256 amount)
+        - handler: handleSendQuote
+          kind: ethereum/LogHandler
+          filter:
+            topics:
+              - SendQuote(uint256 indexed quoteId, address partyA, uint256 symbolId)
+        - handler: handleOpenPosition
+          kind: ethereum/LogHandler
+          filter:
+            topics:
+              - OpenPosition(uint256 indexed quoteId, address indexed partyB, uint256 openedPrice)
+        # Multi-account data source
+  - kind: ethereum/Runtime
+    startBlock: 639277 # From your multi-account config
+    options:
+      address: ['0xbF318724218cED9A3ff7CfC642c71a0CA1952b0F']
+      abi: symmioMultiAccount
+    assets:
+      symmioMultiAccount:
+        file: ./abis/symmioMultiAccount_0.8.4.json
+    mapping:
+      file: ./dist/index.js
+      handlers:
+        # Add multi-account event handlers
+        - handler: handleMultiAccountEvent
+          kind: ethereum/LogHandler
+          filter:
+            topics:
+              - MultiAccountEvent(address indexed user, address indexed account) 

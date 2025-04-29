@@ -12,6 +12,7 @@
   },
   "private": true,
   "dependencies": {
-    "@0xgraph/cli": "^0.2.0"
+    "@0xgraph/cli": "^0.2.0",
+    "@subql/cli": "^5.8.1"
   }
 }

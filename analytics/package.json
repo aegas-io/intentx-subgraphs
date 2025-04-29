@@ -1,4 +1,4 @@
-{
+ {
   "name": "intentx-analytics-subgraph",
   "license": "UNLICENSED",
   "scripts": {
@@ -16,7 +16,9 @@
     "prepare:arbitrum": "mustache ../configs/aggregated/arbitrum.json template.yaml > subgraph.yaml; graph build",
     "deploy:arbitrum": "goldsky subgraph deploy intentx-arbitrum-analytics-083/0.0.8 --path .",
     "prepare:berachain": "mustache ../configs/aggregated/berachain.json template.yaml > subgraph.yaml; graph build",
-    "deploy:berachain": "goldsky subgraph deploy intentx-berachain-analytics/0.0.2 --path ."
+    "deploy:berachain": "goldsky subgraph deploy intentx-berachain-analytics/0.0.2 --path .",
+    "prepare:coti": "mustache ../configs/aggregated/coti.json template.yaml > subgraph.yaml; graph build",
+    "deploy:coti": "goldsky subgraph deploy intentx-coti-analytics/0.0.1 --path ."
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.50.1",

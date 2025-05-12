@@ -26,8 +26,6 @@ services:
     container_name: ipfs
     ports:
       - '5001:5001'
-    volumes:
-      - ipfs-data:/data/ipfs
     networks:
       - graph-network
     healthcheck:
@@ -76,25 +74,15 @@ services:
       - 8.8.4.4
 
   subgraph-deployer:
-    image: node:18
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: subgraph-deployer
-    working_dir: /app
-    volumes:
-      - ./:/app
     depends_on:
       graph-node:
         condition: service_started
       ipfs:
         condition: service_healthy
-    command: >
-      bash -c "cd /app && 
-      sleep 30 && 
-      npx graph create --node http://graph-node:8020/ coti-analytics || true && 
-      cd analytics && 
-      cp -f ../configs/aggregated/coti.json ../configs/current.json &&
-      npm run codegen &&
-      npm run build &&
-      npx graph deploy --node http://graph-node:8020/ --ipfs http://ipfs:5001 coti-analytics --version-label v0.0.3"
     networks:
       - graph-network
 
@@ -104,4 +92,3 @@ networks:
 
 volumes:
   postgres-data:
-  ipfs-data:

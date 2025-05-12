@@ -1,31 +1,43 @@
 # Project: v3-subgraph
 # Description: -
 
-FROM node AS subgraph
+FROM node:18 AS builder
 
-######################################################################
-# LABELS
-######################################################################
-ARG COMMIT_ID
-ARG COMMIT_TIMESTAMP
-ARG COMMIT_AUTHOR
-ARG BUILD_APPLICATION
-ARG BUILD_DATE
+WORKDIR /build
 
-LABEL org.vcs.CommitId=${COMMIT_ID}
-LABEL org.vcs.CommitTimestamp=${COMMIT_TIMESTAMP}
-LABEL org.vcs.CommitAuthor=${COMMIT_AUTHOR}
-LABEL org.build.Application=${BUILD_APPLICATION}
-LABEL org.build.Date=${BUILD_DATE}
+# Copy package files and install dependencies
+COPY package*.json ./
+COPY analytics/package*.json ./analytics/
+RUN npm install && cd analytics && npm install
 
-######################################################################
-# BUILD STAGE
-######################################################################
-RUN npm install -g @graphprotocol/graph-cli@0.49.0
+# Copy all necessary files
+COPY configs/ ./configs/
+COPY analytics/ ./analytics/
+COPY abis/ ./abis/
 
-RUN mkdir /subgraph
-COPY package.json /subgraph
-WORKDIR /subgraph
-RUN npm i
+# Prepare the config
+RUN cp -f configs/aggregated/coti.json configs/current.json
 
-COPY . /subgraph
+# Generate code and build
+WORKDIR /build/analytics
+RUN npm run codegen
+RUN npm run build
+
+# Stage 2: Create deployment image
+FROM node:18-slim
+
+WORKDIR /app
+
+# Copy only necessary files from builder
+COPY --from=builder /build/analytics/package*.json ./
+COPY --from=builder /build/analytics/node_modules ./node_modules
+COPY --from=builder /build/analytics/build ./build
+COPY --from=builder /build/analytics/subgraph.yaml ./subgraph.yaml
+COPY --from=builder /build/analytics/generated ./generated
+
+# Add a deployment script
+COPY deploy.sh ./
+RUN chmod +x ./deploy.sh
+
+# Set the entrypoint to deploy the pre-built subgraph
+ENTRYPOINT ["./deploy.sh"]

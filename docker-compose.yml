@@ -79,6 +79,12 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: subgraph-deployer
+    environment:
+      GRAPH_NODE_URL: "http://graph-node:8020/"
+      IPFS_URL: "http://ipfs:5001"
+      SUBGRAPH_NAME: "coti-analytics"
+      VERSION_LABEL: "v0.0.3"
+      KEEP_CONTAINER_ALIVE: "false"
     depends_on:
       graph-node:
         condition: service_started

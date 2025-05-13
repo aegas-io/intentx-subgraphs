@@ -20,8 +20,8 @@ RUN cp -f configs/aggregated/coti.json configs/current.json
 
 # Generate code and build
 WORKDIR /build/analytics
-RUN npm run codegen
-RUN npm run build
+# RUN npm run codegen
+# RUN npm run build
 
 # Stage 2: Create deployment image
 FROM node:18-slim

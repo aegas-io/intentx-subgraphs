@@ -28,12 +28,19 @@ FROM node:18-slim
 
 WORKDIR /app
 
-# Copy only necessary files from builder
+# Install graph-cli globally
+RUN npm install -g @graphprotocol/graph-cli
+
+# Copy all necessary files from builder to match subgraph.yaml references
 COPY --from=builder /build/analytics/package*.json ./
 COPY --from=builder /build/analytics/node_modules ./node_modules
 COPY --from=builder /build/analytics/build ./build
 COPY --from=builder /build/analytics/subgraph.yaml ./subgraph.yaml
+COPY --from=builder /build/analytics/schema.graphql ./schema.graphql
 COPY --from=builder /build/analytics/generated ./generated
+COPY --from=builder /build/analytics/src ./src
+COPY --from=builder /build/analytics/abis ./abis
+COPY --from=builder /build/abis ./abis
 
 # Add a deployment script
 COPY deploy.sh ./

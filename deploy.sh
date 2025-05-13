@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 
 # Default environment variables if not provided
 GRAPH_NODE_URL=${GRAPH_NODE_URL:-"http://graph-node:8020/"}

@@ -57,10 +57,10 @@ services:
       postgres_db: graph-node
       ipfs: 'ipfs:5001'
       ethereum: 'coti-mainnet:https://2632500.rpc.thirdweb.com/8c04c8a606461e5d8c6256cfd5a3894b'
-      GRAPH_LOG: debug
-      RUST_LOG: debug,hyper=info,reqwest=info,ethabi=info,graph_node=debug,ethereum_adapter=debug,graph_ethereum=debug
+      GRAPH_LOG: info
+      RUST_LOG: debug,hyper=info,reqwest=info,ethabi=info,graph_node=info,ethereum_adapter=info,graph_ethereum=info
       RUST_BACKTRACE: full
-      GRAPH_ETHEREUM_GENESIS_BLOCK_NUMBER: 810223
+      GRAPH_ETHEREUM_GENESIS_BLOCK_NUMBER: 810907
       EXPERIMENTAL_SUBGRAPH_VERSION_SWITCHING_MODE: synced
       ETHEREUM_REORG_THRESHOLD: 1
       ETHEREUM_ANCESTOR_COUNT: 500

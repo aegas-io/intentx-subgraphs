@@ -76,7 +76,7 @@ type BalanceChange @entity(immutable: true) {
   transaction: Bytes!
 }
 
-type TradeHistory @entity(immutable: true) {
+type TradeHistory @entity(immutable: false) {
   id: ID!
   account: String!
   volume: BigInt!

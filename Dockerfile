@@ -8,6 +8,7 @@ WORKDIR /build
 # Copy package files and install dependencies
 COPY package*.json ./
 COPY analytics/package*.json ./analytics/
+RUN npm cache clean --force
 RUN npm install && cd analytics && npm install
 
 # Copy all necessary files

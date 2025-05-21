@@ -59,7 +59,7 @@ services:
       ethereum: 'coti-mainnet:https://2632500.rpc.thirdweb.com/8c04c8a606461e5d8c6256cfd5a3894b'
       GRAPH_LOG: info
       RUST_LOG: info,hyper=info,reqwest=info,ethabi=info,graph_node=info,ethereum_adapter=info,graph_ethereum=info
-      GRAPH_ETHEREUM_GENESIS_BLOCK_NUMBER: 652000
+      GRAPH_ETHEREUM_GENESIS_BLOCK_NUMBER: 185858
       EXPERIMENTAL_SUBGRAPH_VERSION_SWITCHING_MODE: synced
       ETHEREUM_REORG_THRESHOLD: 500
       ETHEREUM_ANCESTOR_COUNT: 500

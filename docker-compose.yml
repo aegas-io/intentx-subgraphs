@@ -56,7 +56,7 @@ services:
       postgres_pass: let-me-in
       postgres_db: graph-node
       ipfs: 'ipfs:5001'
-      ethereum: 'coti-mainnet:https://2632500.rpc.thirdweb.com/8c04c8a606461e5d8c6256cfd5a3894b'
+      ethereum: 'coti-mainnet:https://mainnet-archivenode-01.coti.io/rpc'
       GRAPH_LOG: info
       RUST_LOG: info,hyper=info,reqwest=info,ethabi=info,graph_node=info,ethereum_adapter=info,graph_ethereum=info
       GRAPH_ETHEREUM_GENESIS_BLOCK_NUMBER: 185858

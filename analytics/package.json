@@ -1,4 +1,4 @@
- {
+{
   "name": "intentx-analytics-subgraph",
   "license": "UNLICENSED",
   "scripts": {
@@ -21,6 +21,7 @@
     "deploy:coti": "goldsky subgraph deploy intentx-coti-analytics/0.0.1 --path ."
   },
   "dependencies": {
+    "@goldskycom/cli": "^13.0.2",
     "@graphprotocol/graph-cli": "0.50.1",
     "@graphprotocol/graph-ts": "0.30.0"
   },

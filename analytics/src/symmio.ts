@@ -1225,7 +1225,7 @@ export function handleLiquidatePositionsPartyA(
 ): void {
   for (let i = 0; i < event.params.quoteIds.length; i++) {
     const qId = event.params.quoteIds[i];
-    handleLiquidatePosition<LiquidatePositionsPartyA>(event, qId);
+    handleLiquidatePosition(event, qId);
   }
 }
 
@@ -1234,12 +1234,12 @@ export function handleLiquidatePositionsPartyB(
 ): void {
   for (let i = 0; i < event.params.quoteIds.length; i++) {
     const qId = event.params.quoteIds[i];
-    handleLiquidatePosition<LiquidatePositionsPartyB>(event, qId);
+    handleLiquidatePosition(event, qId);
   }
 }
 
-function handleLiquidatePosition<T>(_event: ethereum.Event, qId: BigInt): void {
-  const event = changetype<T>(_event);
+function handleLiquidatePosition(_event: ethereum.Event, qId: BigInt): void {
+  const event = changetype<LiquidatePositionsPartyA>(_event);
   let history = TradeHistoryModel.load(
     event.params.partyA.toHexString() + "-" + qId.toString()
   )!;

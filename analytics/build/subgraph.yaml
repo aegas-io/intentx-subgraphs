@@ -3,7 +3,7 @@ features:
   - grafting
 graft:
   base: QmcqP2Vg2hJJkMkz2jRBDNWgndELzj7KdvvV2X6XvQEupx
-  block: 4754500
+  block: 4754515
 schema:
   file: schema.graphql
 dataSources:
@@ -13,7 +13,7 @@ dataSources:
     source:
       address: "0x2Ecc7da3Cc98d341F987C85c3D9FC198570838B5"
       abi: symmio
-      startBlock: 4754501
+      startBlock: 4754516
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -177,7 +177,7 @@ dataSources:
     source:
       address: "0x0000000000000000000000000000000000000000"
       abi: symmioMultiAccount
-      startBlock: 4754501
+      startBlock: 4754516
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -209,7 +209,7 @@ dataSources:
     source:
       address: "0xbF318724218cED9A3ff7CfC642c71a0CA1952b0F"
       abi: symmioMultiAccount
-      startBlock: 4754501
+      startBlock: 4754516
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

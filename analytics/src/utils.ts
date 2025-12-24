@@ -269,7 +269,10 @@ export function updateDailyOpenInterest(
 
   if (isSameDay(blockTimestamp, oi.timestamp)) {
     oi.accumulatedAmount = oi.accumulatedAmount.plus(diffInSeconds(blockTimestamp, oi.timestamp).times(oi.amount));
-    dh.openInterest = oi.accumulatedAmount.div(diffInSeconds(blockTimestamp, startOfDay));
+    const secondsFromStartOfDay = diffInSeconds(blockTimestamp, startOfDay);
+    dh.openInterest = secondsFromStartOfDay.gt(BigInt.zero()) 
+      ? oi.accumulatedAmount.div(secondsFromStartOfDay) 
+      : oi.amount;
     oiForSymbol.accumulatedAmount = oiForSymbol.accumulatedAmount.plus(
       diffInSeconds(blockTimestamp, oiForSymbol.timestamp).times(oiForSymbol.amount)
     );
